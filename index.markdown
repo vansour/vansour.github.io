@@ -1,6 +1,8 @@
 ---
-# Feel free to add content and custom Front Matter to this file.
-# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
-
 layout: home
+title: "vansour的博客"
 ---
+
+欢迎来到我的个人博客！这里记录着我的技术学习历程、项目经验分享，以及对技术和生活的思考。
+
+希望这些内容能对你有所帮助。如果你有任何问题或建议，欢迎通过[联系页面](/pages/contact)与我交流。

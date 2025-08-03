@@ -1,0 +1,34 @@
+---
+layout: default
+---
+<div class="home">
+    <div class="main-content">
+        <h1 class="page-title">{{ page.title | default: "最新文章" }}</h1>
+
+        {{ content }}
+
+        {%- if site.posts.size > 0 -%}
+        <ul class="post-list">
+            {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
+            {%- for post in site.posts -%}
+            <li class="post-list-item">
+                <h2 class="post-list-heading">
+                    <a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
+                </h2>
+                <p class="post-list-meta">
+                    {{ post.date | date: date_format }}
+                    {%- if post.author -%}
+                    • <span>{{ post.author | escape }}</span>
+                    {%- endif -%}
+                </p>
+                {%- if post.excerpt -%}
+                <div class="post-list-excerpt">
+                    {{ post.excerpt | strip_html | truncate: 200 }}
+                </div>
+                {%- endif -%}
+            </li>
+            {%- endfor -%}
+        </ul>
+        {%- endif -%}
+    </div>
+</div>

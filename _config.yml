@@ -21,16 +21,38 @@
 title: vansour's blog
 email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
-  A simple blog powered by Jekyll and GitHub Pages.
-baseurl: "/test" # the subpath of your site, e.g. /blog
+  一个简洁优雅的技术博客，采用天蓝色主题设计，分享前端开发、后端技术和学习心得。
+baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://vansour.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: jekyllrb
-github_username:  vansour
+github_username: vansour
 
 # Build settings
-theme: minima
+permalink: /:categories/:slug.html
 plugins:
   - jekyll-feed
+
+# Include pages directory in processing
+include:
+  - _pages
+
+# Collections
+collections:
+  pages:
+    output: true
+    permalink: /:name/
+
+# Markdown settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Sass/SCSS
+sass:
+  sass_dir: _sass
+  style: compressed
 
 # Exclude from processing.
 # The following items will not be processed, by default.
@@ -40,9 +62,17 @@ plugins:
 # Excluded items can be processed by explicitly listing the directories or
 # their entries' file path in the `include:` list.
 #
-# exclude:
-#   - .sass-cache/
-#   - .jekyll-cache/
+exclude:
+  - .sass-cache/
+  - .jekyll-cache/
+  - gemfiles/
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
 #   - gemfiles/
 #   - Gemfile
 #   - Gemfile.lock
