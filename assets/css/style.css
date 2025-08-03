@@ -493,3 +493,48 @@ body {
         font-size: 0.9rem;
     }
 }
+
+/* 分页样式 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin: 3rem 0;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border-color);
+}
+
+.pagination a,
+.pagination span,
+.pagination em {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.pagination a {
+    color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    background: var(--white);
+}
+
+.pagination a:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.pagination span {
+    color: var(--light-text);
+    border: 1px solid transparent;
+}
+
+.pagination em {
+    background: var(--secondary-color);
+    color: white;
+    border: 1px solid var(--secondary-color);
+    font-style: normal;
+    font-weight: 600;
+}
