@@ -1,22 +1,20 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
+<!doctype html>
+<html lang="{{ page.lang | default: site.lang | default: " en" }}">
 {% include head.html %}
 
 <body>
+  {% include header.html %}
 
-    {% include header.html %}
+  <main class="page-content" aria-label="Content">
+    <div class="wrapper">
+      {{ content }}
+    </div>
+  </main>
 
-    <main class="page-content">
-        <div class="wrapper">
-            {{ content }}
-        </div>
-    </main>
+  {% include footer.html %}
 
-    {% include footer.html %}
-
-    {% include toc-script.html %}
-
+  <!-- 包含目录生成脚本 -->
+  {% include toc-script.html %}
 </body>
 
 </html>
