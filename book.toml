@@ -1,0 +1,16 @@
+[book]
+authors = ["vansour"]
+language = "zh-cn"
+src = "src"
+title = "我的文档网站"
+description = "使用 mdBook 构建的文档网站"
+
+[build]
+build-dir = "docs"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/vansour/vansour.github.io"
+git-repository-icon = "fa-github"
+edit-url-template = "https://github.com/vansour/vansour.github.io/edit/main/src/{path}"
