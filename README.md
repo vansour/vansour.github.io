@@ -39,5 +39,15 @@ npm run preview  # 预览构建产物
 
 ## 部署说明
 
-- 仓库需命名为 `vansour.github.io`，Pages 来源选 **GitHub Actions**
-- 部署流程见 `.github/workflows/deploy.yml`
+- Pages 来源选 **GitHub Actions**（部署流程见 `.github/workflows/deploy.yml`）
+- 自定义域名 `mhy.im`：仓库已含 `public/CNAME`，另需在域名服务商配置 DNS：
+
+  ```
+  A       mhy.im      185.199.108.153
+  A       mhy.im      185.199.109.153
+  A       mhy.im      185.199.110.153
+  A       mhy.im      185.199.111.153
+  （可选）CNAME  www    → vansour.github.io
+  ```
+
+  DNS 生效后在 GitHub 仓库 Settings → Pages → Custom domain 填 `mhy.im` 并勾选 Enforce HTTPS。

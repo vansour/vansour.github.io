@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vansour.github.io/sitemap-index.xml
+Sitemap: https://mhy.im/sitemap-index.xml
