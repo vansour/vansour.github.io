@@ -10,9 +10,8 @@ interface Props {
   description?: string;
 }
 
-const siteTitle = 'Vansour 的博客';
-const { title = siteTitle, description = 'Vansour 的个人技术博客：技术笔记、踩坑经历与学习心得。' } =
-  Astro.props;
+const siteTitle = 'Vansour Blog';
+const { title = siteTitle, description } = Astro.props;
 const pageTitle = title === siteTitle ? siteTitle : `${title} · ${siteTitle}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
@@ -23,9 +22,10 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
-    <meta name="description" content={description} />
+    {description && <meta name="description" content={description} />}
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="alternate" type="application/rss+xml" title={siteTitle} href="/rss.xml" />
     <meta name="generator" content={Astro.generator} />
     <script is:inline>

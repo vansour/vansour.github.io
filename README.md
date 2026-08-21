@@ -1,4 +1,4 @@
-# Vansour 的博客
+# Vansour Blog
 
 基于 [Astro](https://astro.build) 的个人技术博客，部署在 GitHub Pages（根路径）。
 

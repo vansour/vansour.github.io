@@ -12,10 +12,7 @@ const { page } = Astro.props;
 const pageTitle = page.currentPage === 1 ? undefined : `第 ${page.currentPage} 页`;
 ---
 
-<BaseLayout title={pageTitle} description="Vansour 的个人技术博客：技术笔记、踩坑经历与学习心得。">
-  <h1 class="page-title">最新文章</h1>
-  <p class="page-subtitle">技术笔记、踩坑经历与学习心得</p>
-
+<BaseLayout title={pageTitle}>
   <div class="post-list">
     {page.data.map((post) => <PostCard post={post} />)}
   </div>
