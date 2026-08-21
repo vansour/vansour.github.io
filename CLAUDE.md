@@ -4,7 +4,7 @@ vansour 的个人博客仓库（Astro + GitHub Pages）。
 
 ## Git 远程仓库
 
-- 远程仓库地址：`git@github.com:vansour/vansour.git`
+- 远程仓库地址：`git@github.com:vansour/vansour.github.io.git`
 - 默认分支：`main`
 - 所有提交推送到该远程仓库。
 
