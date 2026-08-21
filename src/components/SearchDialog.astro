@@ -1,0 +1,136 @@
+---
+// 站内搜索弹窗：懒加载 Pagefind 索引（构建时生成），Ctrl+K / `/` 或导航栏图标唤起
+---
+
+<div id="search-dialog" class="search-backdrop" hidden>
+  <div class="search-panel" role="dialog" aria-modal="true" aria-label="站内搜索">
+    <div class="search-input-row">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      ><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      <input
+        id="search-input"
+        class="search-input"
+        type="search"
+        placeholder="搜索文章…"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <span class="kbd-hint">Esc</span>
+    </div>
+    <div id="search-results" class="search-results"></div>
+  </div>
+</div>
+
+<script>
+  const dialog = document.getElementById('search-dialog');
+  const input = document.getElementById('search-input');
+  const resultsEl = document.getElementById('search-results');
+
+  /** @type {any} 懒加载的 Pagefind 模块，未构建索引时为 null */
+  let pagefind = null;
+  let searchTimer = null;
+
+  async function loadPagefind() {
+    if (pagefind) return pagefind;
+    try {
+      pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind.js');
+      return pagefind;
+    } catch {
+      return null;
+    }
+  }
+
+  function open() {
+    if (!dialog) return;
+    dialog.hidden = false;
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
+    if (resultsEl) resultsEl.innerHTML = '';
+  }
+
+  function close() {
+    if (dialog) dialog.hidden = true;
+    // 失焦，否则按 / 会因「输入中」守卫而无法再次唤起
+    input?.blur();
+  }
+
+  async function runSearch(query) {
+    if (!resultsEl) return;
+    const trimmed = query.trim();
+    if (!trimmed) {
+      resultsEl.innerHTML = '';
+      return;
+    }
+
+    const pf = await loadPagefind();
+    if (!pf) {
+      resultsEl.innerHTML =
+        '<div class="search-empty">搜索索引尚未构建，请先运行 <code>npm run build</code>（生产环境自动可用）</div>';
+      return;
+    }
+
+    const search = await pf.search(trimmed);
+    const items = search?.results ?? [];
+    if (items.length === 0) {
+      resultsEl.innerHTML = '<div class="search-empty">没有找到相关文章</div>';
+      return;
+    }
+
+    const html = [];
+    for (const item of items.slice(0, 10)) {
+      const data = await item.data();
+      html.push(`
+        <a class="search-result" href="${data.url}">
+          <h4>${data.title}</h4>
+          <p>${data.excerpt}</p>
+        </a>`);
+    }
+    resultsEl.innerHTML = html.join('');
+  }
+
+  input?.addEventListener('input', (event) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => runSearch(event.target.value), 150);
+  });
+
+  input?.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') close();
+  });
+
+  // 点击遮罩（面板外）关闭
+  dialog?.addEventListener('click', (event) => {
+    if (event.target === dialog) close();
+  });
+
+  // 打开入口：导航栏搜索图标
+  document.getElementById('search-open')?.addEventListener('click', open);
+
+  // 快捷键：Ctrl/Cmd+K 或 `/`（输入框内除外）
+  document.addEventListener('keydown', (event) => {
+    const typing =
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement ||
+      event.target?.isContentEditable;
+
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      open();
+    } else if (event.key === '/' && !typing && dialog?.hidden) {
+      event.preventDefault();
+      open();
+    } else if (event.key === 'Escape' && !dialog?.hidden) {
+      close();
+    }
+  });
+</script>

@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { getPublishedPosts } from '../lib/posts';
+
+export async function getStaticPaths({ paginate }) {
+  const posts = await getPublishedPosts();
+  return paginate(posts, { pageSize: 10 });
+}
+
+const { page } = Astro.props;
+const pageTitle = page.currentPage === 1 ? undefined : `第 ${page.currentPage} 页`;
+---
+
+<BaseLayout title={pageTitle} description="Vansour 的个人技术博客：技术笔记、踩坑经历与学习心得。">
+  <h1 class="page-title">最新文章</h1>
+  <p class="page-subtitle">技术笔记、踩坑经历与学习心得</p>
+
+  <div class="post-list">
+    {page.data.map((post) => <PostCard post={post} />)}
+  </div>
+
+  {
+    page.lastPage > 1 && (
+      <nav class="pagination" aria-label="分页">
+        {page.url.prev ? (
+          <a href={page.url.prev}>← 上一页</a>
+        ) : (
+          <span class="disabled">← 上一页</span>
+        )}
+        <span>
+          第 {page.currentPage} / {page.lastPage} 页
+        </span>
+        {page.url.next ? (
+          <a href={page.url.next}>下一页 →</a>
+        ) : (
+          <span class="disabled">下一页 →</span>
+        )}
+      </nav>
+    )
+  }
+</BaseLayout>

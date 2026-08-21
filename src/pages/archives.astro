@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { formatMonth } from '../lib/format';
+import { getPublishedPosts } from '../lib/posts';
+
+const posts = await getPublishedPosts();
+
+// 按「年 月」分组，posts 已按日期降序
+const groups = new Map<string, typeof posts>();
+for (const post of posts) {
+  const key = formatMonth(post.data.pubDate);
+  const list = groups.get(key) ?? [];
+  list.push(post);
+  groups.set(key, list);
+}
+---
+
+<BaseLayout title="归档" description="全部文章按月归档">
+  <h1 class="page-title">归档</h1>
+  <p class="page-subtitle">共 {posts.length} 篇文章</p>
+
+  {
+    [...groups.entries()].map(([month, list]) => (
+      <section class="archive-group">
+        <h2>{month}</h2>
+        <ul class="archive-list">
+          {
+            list.map((post) => (
+              <li>
+                <time class="date" datetime={post.data.pubDate.toISOString()}>
+                  {post.data.pubDate.toISOString().slice(0, 10)}
+                </time>
+                <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    ))
+  }
+</BaseLayout>

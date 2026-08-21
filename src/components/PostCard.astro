@@ -1,0 +1,19 @@
+---
+import TagChip from './TagChip.astro';
+import { formatDate } from '../lib/format';
+import type { CollectionEntry } from 'astro:content';
+
+const { post } = Astro.props;
+const { data, id } = post;
+---
+
+<article class="post-card">
+  <h2>
+    <a href={`/blog/${id}/`}>{data.title}</a>
+  </h2>
+  <div class="post-meta">
+    <time datetime={data.pubDate.toISOString()}>{formatDate(data.pubDate)}</time>
+    {data.tags.map((tag) => <TagChip tag={tag} />)}
+  </div>
+  <p class="post-excerpt">{data.description}</p>
+</article>
