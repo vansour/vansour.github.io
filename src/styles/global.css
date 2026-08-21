@@ -12,7 +12,8 @@
   --code-bg: #f6f8fa;
   --overlay: rgba(0, 0, 0, 0.4);
   --radius: 10px;
-  --max-width: 720px;
+  /* 内容列宽跟随视口：小屏全宽、大屏按 82vw 放大，超过 960px 封顶保持可读性 */
+  --max-width: clamp(560px, 82vw, 960px);
   --font-body: system-ui, -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
   --font-code: ui-monospace, "JetBrains Mono", "Cascadia Code", monospace;
 }
@@ -401,6 +402,7 @@ main {
 }
 
 .prose pre {
+  position: relative;
   margin: 24px 0;
   padding: 16px 20px;
   border-radius: var(--radius);
@@ -408,6 +410,45 @@ main {
   background: var(--code-bg);
   overflow-x: auto;
   line-height: 1.6;
+}
+
+/* 代码块复制按钮 */
+.code-copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+  font-family: var(--font-body);
+  line-height: 1.6;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.code-copy-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.code-copy-btn.copied {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* 支持 hover 的设备悬停显示，触屏设备常驻 */
+@media (hover: hover) {
+  .code-copy-btn {
+    opacity: 0;
+  }
+
+  .prose pre:hover .code-copy-btn,
+  .code-copy-btn:focus-visible {
+    opacity: 1;
+  }
 }
 
 .prose pre code {
