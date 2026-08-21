@@ -1,7 +1,5 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import TagChip from '../../components/TagChip.astro';
-import { formatDate } from '../../lib/format';
 import { getPublishedPosts } from '../../lib/posts';
 import { render } from 'astro:content';
 
@@ -25,13 +23,6 @@ const newer = index > 0 ? posts[index - 1] : undefined;
   <article>
     <header class="article-header">
       <h1>{data.title}</h1>
-      <div class="article-meta">
-        <time datetime={data.pubDate.toISOString()}>发布于 {formatDate(data.pubDate)}</time>
-        {data.updatedDate && (
-          <span>更新于 {formatDate(data.updatedDate)}</span>
-        )}
-        {data.tags.map((tag) => <TagChip tag={tag} />)}
-      </div>
     </header>
 
     <div class="prose">

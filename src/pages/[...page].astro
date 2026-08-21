@@ -5,6 +5,7 @@ import { getPublishedPosts } from '../lib/posts';
 
 export async function getStaticPaths({ paginate }) {
   const posts = await getPublishedPosts();
+  // 空文章时 paginate 仍返回 1 个空页，模板里显示空态
   return paginate(posts, { pageSize: 10 });
 }
 
@@ -13,27 +14,35 @@ const pageTitle = page.currentPage === 1 ? undefined : `第 ${page.currentPage} 
 ---
 
 <BaseLayout title={pageTitle}>
-  <div class="post-list">
-    {page.data.map((post) => <PostCard post={post} />)}
-  </div>
-
   {
-    page.lastPage > 1 && (
-      <nav class="pagination" aria-label="分页">
-        {page.url.prev ? (
-          <a href={page.url.prev}>← 上一页</a>
-        ) : (
-          <span class="disabled">← 上一页</span>
-        )}
-        <span>
-          第 {page.currentPage} / {page.lastPage} 页
-        </span>
-        {page.url.next ? (
-          <a href={page.url.next}>下一页 →</a>
-        ) : (
-          <span class="disabled">下一页 →</span>
-        )}
-      </nav>
+    page.data.length === 0 ? (
+      <p class="page-subtitle">暂无文章</p>
+    ) : (
+      <>
+        <div class="post-list">
+          {page.data.map((post) => <PostCard post={post} />)}
+        </div>
+
+        {
+          page.lastPage > 1 && (
+            <nav class="pagination" aria-label="分页">
+              {page.url.prev ? (
+                <a href={page.url.prev}>← 上一页</a>
+              ) : (
+                <span class="disabled">← 上一页</span>
+              )}
+              <span>
+                第 {page.currentPage} / {page.lastPage} 页
+              </span>
+              {page.url.next ? (
+                <a href={page.url.next}>下一页 →</a>
+              ) : (
+                <span class="disabled">下一页 →</span>
+              )}
+            </nav>
+          )
+        }
+      </>
     )
   }
 </BaseLayout>

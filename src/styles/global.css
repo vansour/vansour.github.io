@@ -254,35 +254,6 @@ main {
 }
 
 /* ==========================================================
-   标签
-   ========================================================== */
-
-.tag {
-  display: inline-block;
-  padding: 1px 10px;
-  border-radius: 999px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
-  transition: border-color 0.2s ease, color 0.2s ease;
-}
-
-.tag:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  text-decoration: none;
-}
-
-.tag-cloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 28px 0 16px;
-}
-
-/* ==========================================================
    分页器
    ========================================================== */
 
@@ -551,42 +522,33 @@ main {
 }
 
 /* ==========================================================
-   归档 / 标签列表页
+   全部文章列表页
    ========================================================== */
 
-.archive-group {
-  margin: 28px 0 16px;
-}
-
-.archive-group h2 {
-  margin: 0 0 8px;
-  font-size: 20px;
-}
-
-.archive-list {
+.all-posts-list {
   list-style: none;
-  margin: 0 0 32px;
+  margin: 28px 0 32px;
   padding: 0;
 }
 
-.archive-list li {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-  padding: 10px 0;
+.all-posts-list li {
+  padding: 14px 0;
   border-bottom: 1px dashed var(--border);
 }
 
-.archive-list .date {
-  flex-shrink: 0;
-  font-family: var(--font-code);
-  font-size: 13px;
-  color: var(--muted);
-  width: 88px;
+.all-posts-list a {
+  font-size: 17px;
+  color: var(--fg);
 }
 
-.tag-post-list li {
-  margin: 8px 0;
+.all-posts-list a:hover {
+  color: var(--accent);
+}
+
+.all-posts-list p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
 }
 
 /* ==========================================================

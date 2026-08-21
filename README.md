@@ -28,9 +28,7 @@ npm run preview  # 预览构建产物
    ---
    title: 文章标题
    description: 摘要（列表页与 SEO 用）
-   pubDate: 2026-08-21
-   updatedDate: 2026-08-22   # 可选
-   tags: [标签1, 标签2]        # 可选
+   order: 1                  # 可选，越小越靠前；不写则排在最后
    draft: false               # 可选，true 时生产构建剔除
    ---
    ```
