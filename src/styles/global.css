@@ -106,7 +106,7 @@ body {
   color: var(--fg);
   font-family: var(--font-body);
   font-size: 17px;
-  line-height: 1.75;
+  line-height: 1.6;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -434,7 +434,7 @@ main {
    ========================================================== */
 
 .hero {
-  padding: 56px 0 8px;
+  padding: 40px 0 8px;
 }
 
 .hero-title {
@@ -489,13 +489,13 @@ main {
 .post-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin: 28px 0 16px;
+  gap: 12px;
+  margin: 20px 0 12px;
 }
 
 .post-card {
   display: block;
-  padding: 20px 24px;
+  padding: 16px 20px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg);
@@ -567,7 +567,7 @@ main {
    ========================================================== */
 
 .article-header {
-  margin: 40px 0 24px;
+  margin: 28px 0 16px;
 }
 
 .article-header h1 {
@@ -578,49 +578,41 @@ main {
   letter-spacing: -0.01em;
 }
 
-/* 终端风格 meta：文件名与排序号 */
-.article-file {
-  margin: 0;
-  font-family: var(--font-code);
-  font-size: 13px;
-  color: var(--muted);
-}
-
 .prose {
-  margin-bottom: 48px;
+  margin-bottom: 32px;
 }
 
 .prose h2 {
-  margin: 44px 0 16px;
-  padding-top: 8px;
+  margin: 28px 0 10px;
+  padding-top: 6px;
   font-size: 24px;
   line-height: 1.4;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
+  padding-bottom: 6px;
 }
 
 .prose h3 {
-  margin: 32px 0 12px;
+  margin: 20px 0 8px;
   font-size: 20px;
   line-height: 1.4;
 }
 
 .prose p {
-  margin: 16px 0;
+  margin: 8px 0;
 }
 
 .prose ul,
 .prose ol {
-  margin: 16px 0;
+  margin: 8px 0;
   padding-left: 24px;
 }
 
 .prose li {
-  margin: 6px 0;
+  margin: 3px 0;
 }
 
 .prose blockquote {
-  margin: 24px 0;
+  margin: 12px 0;
   padding: 4px 20px;
   border-left: 3px solid var(--accent);
   background: var(--surface);
@@ -643,14 +635,14 @@ main {
 
 .prose pre {
   position: relative;
-  margin: 24px 0;
-  padding: 16px 20px;
+  margin: 12px 0;
+  padding: 14px 18px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: var(--code-bg);
   /* 兜底滚动（无 JS 时）；有 JS 时滚动由内层 .code-scroll 承担 */
   overflow-x: auto;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 /* 代码内容的内层滚动容器（CopyCodeButton 注入）：
@@ -715,7 +707,7 @@ main {
 .prose table {
   width: 100%;
   border-collapse: collapse;
-  margin: 24px 0;
+  margin: 12px 0;
   font-size: 15px;
 }
 
@@ -733,7 +725,7 @@ main {
 .prose hr {
   border: none;
   border-top: 1px solid var(--border);
-  margin: 40px 0;
+  margin: 20px 0;
 }
 
 .prose img {
@@ -764,7 +756,7 @@ main {
 
 .code-tabs {
   position: relative;
-  margin: 24px 0;
+  margin: 12px 0;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   /* 圆角裁剪变体 pre 的方角，并让复制按钮限定在框内 */

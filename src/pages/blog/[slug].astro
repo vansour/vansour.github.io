@@ -17,11 +17,6 @@ const { data } = post;
   <article>
     <header class="article-header">
       <h1>{data.title}</h1>
-      <!-- 终端风格 meta：文件名与排序号 -->
-      <p class="article-file">
-        # {post.id}.md
-        {data.order !== undefined && <span> · order {data.order}</span>}
-      </p>
     </header>
 
     <div class="prose">
