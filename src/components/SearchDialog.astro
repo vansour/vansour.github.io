@@ -65,6 +65,16 @@
     input?.blur();
   }
 
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    })[c]);
+  }
+
   async function runSearch(query) {
     if (!resultsEl) return;
     const trimmed = query.trim();
@@ -90,9 +100,11 @@
     const html = [];
     for (const item of items.slice(0, 10)) {
       const data = await item.data();
+      // 标题在 meta.title（pagefind 1.5 结构），url/title 需转义；excerpt 自带 <mark> 标签所以不转义
+      const title = data.meta?.title ?? data.title ?? '';
       html.push(`
-        <a class="search-result" href="${data.url}">
-          <h4>${data.title}</h4>
+        <a class="search-result" href="${escapeHtml(data.url)}">
+          <h4>${escapeHtml(title)}</h4>
           <p>${data.excerpt}</p>
         </a>`);
     }

@@ -15,7 +15,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
 <header class="site-header">
   <div class="container">
     <a href="/" class="site-brand">Vansour Blog</a>
-    <nav class="site-nav" aria-label="主导航">
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
       {
         navItems.map((item) => (
           <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
@@ -39,6 +39,65 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
         ><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
       </button>
       <ThemeToggle />
+      <!-- 小屏汉堡按钮：展开/收起导航面板（CSS 控制显示时机） -->
+      <button
+        type="button"
+        class="icon-button nav-toggle"
+        id="nav-toggle"
+        aria-label="打开菜单"
+        aria-expanded="false"
+        aria-controls="site-nav"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ><path d="M3 6h18M3 12h18M3 18h18"></path></svg>
+      </button>
     </div>
   </div>
 </header>
+
+<script>
+  // 汉堡菜单：小屏展开/收起导航面板；点链接、Esc、点面板外自动关闭
+  const toggle = document.getElementById('nav-toggle');
+  const nav = document.getElementById('site-nav');
+
+  if (toggle && nav) {
+    const close = () => {
+      nav.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', '打开菜单');
+    };
+
+    toggle.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+    });
+
+    nav.addEventListener('click', (event) => {
+      if (event.target instanceof HTMLAnchorElement) close();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && nav.classList.contains('open')) close();
+    });
+
+    document.addEventListener('click', (event) => {
+      if (
+        event.target instanceof Element &&
+        !event.target.closest('.site-header') &&
+        nav.classList.contains('open')
+      ) {
+        close();
+      }
+    });
+  }
+</script>

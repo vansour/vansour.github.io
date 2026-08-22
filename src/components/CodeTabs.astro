@@ -1,0 +1,56 @@
+---
+// 多变体代码框交互：选择器切换组合 + 复制当前组合
+// 结构由 code-tabs 插件在构建期生成（全部变体已高亮进 DOM，此处只做显示切换）
+---
+
+<script>
+  import { copyText, codeBlockText } from '../lib/code-copy';
+
+  function initCodeTabs() {
+    document.querySelectorAll('.code-tabs').forEach((tabs) => {
+      const variants = [...tabs.querySelectorAll('.code-variant')];
+      const buttons = [...tabs.querySelectorAll('.ct-option')];
+
+      const currentCombo = () =>
+        buttons
+          .filter((b) => b.getAttribute('aria-pressed') === 'true')
+          .map((b) => b.dataset.value)
+          .join('|');
+
+      const update = () => {
+        const combo = currentCombo();
+        variants.forEach((pre) => {
+          pre.hidden = pre.dataset.combo !== combo;
+        });
+      };
+
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          // 同一维度内互斥：先清除本行所有选中，再选中当前
+          btn.parentElement?.querySelectorAll('.ct-option').forEach((b) => {
+            b.setAttribute('aria-pressed', 'false');
+          });
+          btn.setAttribute('aria-pressed', 'true');
+          update();
+        });
+      });
+
+      const copyBtn = tabs.querySelector('.ct-copy');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+          const active = variants.find((pre) => !pre.hidden);
+          if (!active) return;
+          const ok = await copyText(codeBlockText(active));
+          copyBtn.textContent = ok ? '已复制' : '复制失败';
+          copyBtn.classList.toggle('copied', ok);
+          setTimeout(() => {
+            copyBtn.textContent = '复制';
+            copyBtn.classList.remove('copied');
+          }, 1500);
+        });
+      }
+    });
+  }
+
+  initCodeTabs();
+</script>

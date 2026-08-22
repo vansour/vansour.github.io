@@ -4,6 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import SearchDialog from '../components/SearchDialog.astro';
 import CopyCodeButton from '../components/CopyCodeButton.astro';
+import CodeTabs from '../components/CodeTabs.astro';
 
 interface Props {
   title?: string;
@@ -48,5 +49,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <Footer />
     <SearchDialog />
     <CopyCodeButton />
+    <CodeTabs />
   </body>
 </html>

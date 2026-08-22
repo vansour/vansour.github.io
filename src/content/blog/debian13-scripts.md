@@ -34,12 +34,16 @@ echo -e "nameserver 1.1.1.1" > /etc/resolv.conf && > /etc/motd && hostnamectl se
 
 ## 3. 重置 apt 软件源（deb822 格式）
 
-```bash
-rm -rf /etc/apt/mirrors/ && > /etc/apt/sources.list && echo -e "Types: deb\nURIs: http://deb.debian.org/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: http://deb.debian.org/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: http://deb.debian.org/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: http://deb.debian.org/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg" > /etc/apt/sources.list.d/debian.sources
+```code-tabs bash
+版本: Debian13=trixie | Debian12=bookworm
+协议: http | https
+镜像: 官方=deb.debian.org | XTOM=mirrors.xtom.com | TUNA=mirrors.tuna.tsinghua.edu.cn
+---
+rm -rf /etc/apt/mirrors/ && > /etc/apt/sources.list && echo -e "Types: deb\nURIs: {协议}://{镜像}/debian\nSuites: {版本} {版本}-updates {版本}-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {协议}://{镜像}/debian\nSuites: {版本} {版本}-updates {版本}-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: {协议}://{镜像}/debian-security\nSuites: {版本}-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {协议}://{镜像}/debian-security\nSuites: {版本}-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg" > /etc/apt/sources.list.d/debian.sources
 ```
 
-- 清掉厂商预置的镜像源目录与旧格式的 `sources.list`
-- 写入官方源 `deb.debian.org`，使用 Debian 13 默认的 **deb822 格式**（一个文件可声明多套源）
+- 点击上方开关可切换 **Debian 版本（13/12）**、**协议（http/https）** 与 **镜像源（官方 / XTOM / TUNA）**，复制按钮复制当前组合
+- 默认写入官方源 `deb.debian.org`，使用 **deb822 格式**（一个文件可声明多套源）
 - 覆盖 `main contrib non-free non-free-firmware` 全部组件，含 `deb-src` 源码源
 - 签名密钥 `debian-archive-keyring.gpg` 由 `debian-archive-keyring` 包提供
 

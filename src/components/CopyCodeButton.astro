@@ -1,14 +1,26 @@
 ---
-// 代码块复制按钮：为所有 .prose pre 注入「复制」按钮
-// 文本提取逐行取 .line 的文本再拼接（构建压缩会去掉行间换行，不能直接用 textContent）
+// 代码块复制按钮：为所有 .prose pre 注入「复制」按钮（跳过 code-tabs 内的变体，
+// 多变体代码框有自己的复制按钮，见 CodeTabs.astro）
+// 文本提取逐行取 .line 的文本再拼接（不依赖构建产物是否保留换行节点）
 ---
 
 <script>
+  import { copyText, codeBlockText } from '../lib/code-copy';
+
   function initCopyButtons() {
-    const pres = document.querySelectorAll('.prose pre');
+    const pres = [...document.querySelectorAll('.prose pre')].filter(
+      (pre) => !pre.closest('.code-tabs'),
+    );
     if (!pres.length) return;
 
     pres.forEach((pre) => {
+      // 代码内容包进内层滚动容器：滚动发生在 .code-scroll 上，
+      // 复制按钮（absolute 定位在 pre）不随内容横向滚动
+      const scroller = document.createElement('div');
+      scroller.className = 'code-scroll';
+      while (pre.firstChild) scroller.appendChild(pre.firstChild);
+      pre.appendChild(scroller);
+
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'code-copy-btn';
@@ -16,29 +28,9 @@
       btn.setAttribute('aria-label', '复制代码');
 
       btn.addEventListener('click', async () => {
-        const codeEl = pre.querySelector('code');
-        const lines = codeEl ? [...codeEl.querySelectorAll('.line')].map((l) => l.textContent) : [];
-        const text = lines.length ? lines.join('\n') : (codeEl?.textContent ?? '');
-
-        try {
-          if (navigator.clipboard?.writeText) {
-            await navigator.clipboard.writeText(text);
-          } else {
-            // 非安全上下文（http）兜底
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.position = 'fixed';
-            ta.style.opacity = '0';
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            ta.remove();
-          }
-          btn.textContent = '已复制';
-          btn.classList.add('copied');
-        } catch {
-          btn.textContent = '复制失败';
-        }
+        const ok = await copyText(codeBlockText(pre));
+        btn.textContent = ok ? '已复制' : '复制失败';
+        btn.classList.toggle('copied', ok);
         setTimeout(() => {
           btn.textContent = '复制';
           btn.classList.remove('copied');
