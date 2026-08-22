@@ -145,22 +145,19 @@ export default function codeTabs() {
         }
         const langName = loaded ? targetLang : 'plaintext';
 
-        // 选择器行
+        // 选择器行：每个维度一个下拉列表（默认选中第一项）
         const rows = spec.dims.map((dim) =>
           h('div', { className: ['ct-row'] }, [
-            h('span', { className: ['ct-label'] }, [{ type: 'text', value: dim.name }]),
-            ...dim.options.map((opt, i) =>
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: ['ct-option'],
-                  dataValue: opt.value,
-                  ariaPressed: String(i === 0),
-                },
-                [{ type: 'text', value: opt.label }],
+            h('label', { className: ['ct-label'] }, [{ type: 'text', value: dim.name }]),
+            h('select', { className: ['ct-select'], ariaLabel: dim.name }, [
+              ...dim.options.map((opt, i) =>
+                h(
+                  'option',
+                  { value: opt.value, selected: i === 0 },
+                  [{ type: 'text', value: opt.label }],
+                ),
               ),
-            ),
+            ]),
           ]),
         );
 

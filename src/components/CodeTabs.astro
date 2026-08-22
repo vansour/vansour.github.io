@@ -9,30 +9,17 @@
   function initCodeTabs() {
     document.querySelectorAll('.code-tabs').forEach((tabs) => {
       const variants = [...tabs.querySelectorAll('.code-variant')];
-      const buttons = [...tabs.querySelectorAll('.ct-option')];
-
-      const currentCombo = () =>
-        buttons
-          .filter((b) => b.getAttribute('aria-pressed') === 'true')
-          .map((b) => b.dataset.value)
-          .join('|');
+      const selects = [...tabs.querySelectorAll('.ct-select')];
 
       const update = () => {
-        const combo = currentCombo();
+        const combo = selects.map((s) => s.value).join('|');
         variants.forEach((pre) => {
           pre.hidden = pre.dataset.combo !== combo;
         });
       };
 
-      buttons.forEach((btn) => {
-        btn.addEventListener('click', () => {
-          // 同一维度内互斥：先清除本行所有选中，再选中当前
-          btn.parentElement?.querySelectorAll('.ct-option').forEach((b) => {
-            b.setAttribute('aria-pressed', 'false');
-          });
-          btn.setAttribute('aria-pressed', 'true');
-          update();
-        });
+      selects.forEach((select) => {
+        select.addEventListener('change', update);
       });
 
       const copyBtn = tabs.querySelector('.ct-copy');

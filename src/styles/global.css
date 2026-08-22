@@ -504,25 +504,20 @@ main {
   color: var(--muted);
 }
 
-.ct-option {
-  padding: 3px 10px;
+.ct-select {
+  padding: 3px 8px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 6px;
   background: var(--bg);
   color: var(--fg);
   font-size: 13px;
   font-family: var(--font-body);
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color 0.15s ease;
 }
 
-.ct-option:hover {
+.ct-select:hover {
   border-color: var(--accent);
-}
-
-.ct-option[aria-pressed='true'] {
-  border-color: var(--accent);
-  color: var(--accent);
 }
 
 /* 变体代码块：容器统一边框圆角，pre 自身去边框边距（背景色由 shiki 内联样式负责） */

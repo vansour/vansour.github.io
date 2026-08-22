@@ -8,21 +8,26 @@ order: 1
 
 > 以下命令均需 **root** 权限执行。
 
-## 1. 一键重装 Debian 13
+## 1. 一键重装 Debian（可切换 13 / 12）
 
-```bash
-bash <(curl -fsSL "https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh") debian
+```code-tabs bash
+版本: Debian13=13 | Debian12=12
+---
+bash <(curl -fsSL "https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh") debian {版本}
 ```
 
 - 使用 [bin456789/reinstall](https://github.com/bin456789/reinstall) 开源重装脚本，网络安装官方纯净系统
-- `debian` 参数默认安装**最新稳定版**，当前即 Debian 13（trixie）
+- 下拉选择 **Debian 13 / 12** 指定目标版本；不输入版本号则安装最新稳定版
 - `curl -fsSL`：静默下载、出错即失败、跟随重定向；`<( )` 进程替换把下载内容直接喂给 bash
 - ⚠️ 会**清空磁盘所有数据**，执行前确认数据已备份
 
 ## 2. 初始化：DNS、motd 与主机名
 
 ```bash
-echo -e "nameserver 1.1.1.1" > /etc/resolv.conf && > /etc/motd && hostnamectl set-hostname localhost && exec bash
+echo -e "nameserver 1.1.1.1" > /etc/resolv.conf
+> /etc/motd
+hostnamectl set-hostname localhost
+exec bash
 ```
 
 一条命令完成四件事：
@@ -39,10 +44,36 @@ echo -e "nameserver 1.1.1.1" > /etc/resolv.conf && > /etc/motd && hostnamectl se
 协议: http | https
 镜像: 官方=deb.debian.org | XTOM=mirrors.xtom.com | TUNA=mirrors.tuna.tsinghua.edu.cn
 ---
-rm -rf /etc/apt/mirrors/ && > /etc/apt/sources.list && echo -e "Types: deb\nURIs: {协议}://{镜像}/debian\nSuites: {版本} {版本}-updates {版本}-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {协议}://{镜像}/debian\nSuites: {版本} {版本}-updates {版本}-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: {协议}://{镜像}/debian-security\nSuites: {版本}-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {协议}://{镜像}/debian-security\nSuites: {版本}-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg" > /etc/apt/sources.list.d/debian.sources
+rm -rf /etc/apt/mirrors/
+> /etc/apt/sources.list
+cat > /etc/apt/sources.list.d/debian.sources <<'EOF'
+Types: deb
+URIs: {协议}://{镜像}/debian
+Suites: {版本} {版本}-updates {版本}-backports
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb-src
+URIs: {协议}://{镜像}/debian
+Suites: {版本} {版本}-updates {版本}-backports
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb
+URIs: {协议}://{镜像}/debian-security
+Suites: {版本}-security
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb-src
+URIs: {协议}://{镜像}/debian-security
+Suites: {版本}-security
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF
 ```
 
-- 点击上方开关可切换 **Debian 版本（13/12）**、**协议（http/https）** 与 **镜像源（官方 / XTOM / TUNA）**，复制按钮复制当前组合
+- 下拉选择 **Debian 版本（13/12）**、**协议（http/https）** 与 **镜像源（官方 / XTOM / TUNA）**，复制按钮复制当前组合
 - 默认写入官方源 `deb.debian.org`，使用 **deb822 格式**（一个文件可声明多套源）
 - 覆盖 `main contrib non-free non-free-firmware` 全部组件，含 `deb-src` 源码源
 - 签名密钥 `debian-archive-keyring.gpg` 由 `debian-archive-keyring` 包提供
@@ -50,7 +81,9 @@ rm -rf /etc/apt/mirrors/ && > /etc/apt/sources.list && echo -e "Types: deb\nURIs
 ## 4. 更新系统并安装常用工具
 
 ```bash
-apt -y update && apt -y full-upgrade && apt -y install wget curl jq sudo vim ca-certificates cron unzip git gpg aria2 tmux
+apt -y update
+apt -y full-upgrade
+apt -y install wget curl jq sudo vim ca-certificates cron unzip git gpg aria2 tmux
 ```
 
 - `full-upgrade` 会处理依赖变更与内核升级，比 `upgrade` 更彻底，适合系统刚装好时一步到位
