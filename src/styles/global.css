@@ -516,8 +516,26 @@ main {
   transition: border-color 0.15s ease;
 }
 
-.ct-select:hover {
+.ct-select:hover,
+.ct-input:hover {
   border-color: var(--accent);
+}
+
+.ct-input {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 13px;
+  font-family: var(--font-code);
+  min-width: 180px;
+  transition: border-color 0.15s ease;
+}
+
+.ct-input:focus {
+  border-color: var(--accent);
+  outline: none;
 }
 
 /* 变体代码块：容器统一边框圆角，pre 自身去边框边距（背景色由 shiki 内联样式负责） */

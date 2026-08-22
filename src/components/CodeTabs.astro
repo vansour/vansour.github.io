@@ -10,16 +10,56 @@
     document.querySelectorAll('.code-tabs').forEach((tabs) => {
       const variants = [...tabs.querySelectorAll('.code-variant')];
       const selects = [...tabs.querySelectorAll('.ct-select')];
+      const inputs = [...tabs.querySelectorAll('.ct-input')];
+
+      // 记录每个变体的原始行（HTML 用于恢复高亮，文本用于替换基准）
+      const originals = new Map();
+      variants.forEach((pre) => {
+        originals.set(
+          pre,
+          [...pre.querySelectorAll('.line')].map((l) => ({
+            html: l.innerHTML,
+            text: l.textContent,
+          })),
+        );
+      });
 
       const update = () => {
         const combo = selects.map((s) => s.value).join('|');
         variants.forEach((pre) => {
           pre.hidden = pre.dataset.combo !== combo;
         });
+        patchInputs();
+      };
+
+      // 输入框维度：把当前变体行中的「默认值」替换为「输入值」；
+      // 受影响行降级为纯文本（其余行保持高亮）；输入恢复默认时还原原高亮
+      const patchInputs = () => {
+        const active = variants.find((pre) => !pre.hidden);
+        if (!active) return;
+        const base = originals.get(active) ?? [];
+        const changed = inputs.filter((i) => i.value !== i.dataset.default);
+        active.querySelectorAll('.line').forEach((line, idx) => {
+          const orig = base[idx];
+          if (!orig) return;
+          if (changed.length === 0) {
+            if (line.innerHTML !== orig.html) line.innerHTML = orig.html;
+            return;
+          }
+          let text = orig.text;
+          for (const input of changed) {
+            text = text.split(input.dataset.default).join(input.value);
+          }
+          if (line.textContent !== text) line.textContent = text;
+        });
       };
 
       selects.forEach((select) => {
         select.addEventListener('change', update);
+      });
+
+      inputs.forEach((input) => {
+        input.addEventListener('input', patchInputs);
       });
 
       const copyBtn = tabs.querySelector('.ct-copy');

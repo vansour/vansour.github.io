@@ -12,8 +12,9 @@
  *   Suites: {版本} {版本}-updates
  *   ```
  *
- * - 头部每行一个选择维度：「维度名: 选项 | 选项」（选项可用 显示名=值 指定值）
- * - `---` 之后是代码模板，`{维度名}` 占位符在渲染时替换为选中值
+ * - 头部每行一个维度：「维度名: 选项 | 选项」为下拉（选项可用 显示名=值 指定值）；
+ *   「维度名: 输入 默认值」为输入框（自由文本，运行时由用户输入动态生成代码）
+ * - `---` 之后是代码模板，`{维度名}` 占位符在渲染时替换为选中/输入值
  * - 构建期枚举全部组合并逐个 Shiki 高亮（浅/暗双主题，与全站一致），
  *   运行时 JS 只切换显示，默认展示第一个组合（无 JS 也可用）
  *
@@ -39,10 +40,10 @@ interface Option {
   label: string;
   value: string;
 }
-interface Dimension {
-  name: string;
-  options: Option[];
-}
+type Dimension = { name: string; input: string } | { name: string; options: Option[] };
+
+/** 输入框维度：`名称: 输入 默认值`（自由文本，运行时替换模板占位符） */
+const INPUT_KEYWORDS = ['输入', 'input'];
 
 /** 解析围栏内容为「维度列表 + 模板」；格式不符返回 null（保持原样输出并警告） */
 function parseSpec(raw: string): { dims: Dimension[]; template: string } | null {
@@ -55,7 +56,17 @@ function parseSpec(raw: string): { dims: Dimension[]; template: string } | null 
     if (!line.trim()) continue;
     const m = line.match(/^([^:]+):\s*(.+)$/);
     if (!m) return null;
-    const options = m[2]
+    const name = m[1].trim();
+    const body = m[2].trim();
+    // 输入框维度：`名称: 输入 默认值`
+    const inputMatch = body.match(new RegExp(`^(?:${INPUT_KEYWORDS.join('|')})(?:\\s+|=)(.+)$`));
+    if (inputMatch) {
+      const def = inputMatch[1].trim();
+      if (!def) return null;
+      dims.push({ name, input: def });
+      continue;
+    }
+    const options = body
       .split('|')
       .map((s) => {
         const opt = s.trim();
@@ -66,18 +77,19 @@ function parseSpec(raw: string): { dims: Dimension[]; template: string } | null 
       })
       .filter((o) => o.value.length > 0);
     if (options.length === 0) return null;
-    dims.push({ name: m[1].trim(), options });
+    dims.push({ name, options });
   }
   if (dims.length === 0) return null;
   return { dims, template };
 }
 
-/** 笛卡尔积枚举全部组合（每个维度取一个选项） */
+/** 笛卡尔积枚举全部组合（每个维度取一个选项；输入框维度取默认值） */
 function enumerate(dims: Dimension[]): Array<Record<string, string>> {
   let result: Array<Record<string, string>> = [{}];
   for (const dim of dims) {
+    const opts: Option[] = 'input' in dim ? [{ label: dim.input, value: dim.input }] : dim.options;
     result = result.flatMap((combo) =>
-      dim.options.map((opt) => ({ ...combo, [dim.name]: opt.value })),
+      opts.map((opt) => ({ ...combo, [dim.name]: opt.value })),
     );
   }
   return result;
@@ -145,19 +157,27 @@ export default function codeTabs() {
         }
         const langName = loaded ? targetLang : 'plaintext';
 
-        // 选择器行：每个维度一个下拉列表（默认选中第一项）
+        // 选择器行：下拉维度 + 输入框维度（data-default 供运行时按默认值做文本替换）
         const rows = spec.dims.map((dim) =>
           h('div', { className: ['ct-row'] }, [
             h('label', { className: ['ct-label'] }, [{ type: 'text', value: dim.name }]),
-            h('select', { className: ['ct-select'], ariaLabel: dim.name }, [
-              ...dim.options.map((opt, i) =>
-                h(
-                  'option',
-                  { value: opt.value, selected: i === 0 },
-                  [{ type: 'text', value: opt.label }],
-                ),
-              ),
-            ]),
+            'input' in dim
+              ? h('input', {
+                  type: 'text',
+                  className: ['ct-input'],
+                  value: dim.input,
+                  dataDefault: dim.input,
+                  ariaLabel: dim.name,
+                })
+              : h('select', { className: ['ct-select'], ariaLabel: dim.name }, [
+                  ...dim.options.map((opt, i) =>
+                    h(
+                      'option',
+                      { value: opt.value, selected: i === 0 },
+                      [{ type: 'text', value: opt.label }],
+                    ),
+                  ),
+                ]),
           ]),
         );
 
@@ -191,8 +211,8 @@ export default function codeTabs() {
         });
 
         const childNodes: HastNode[] = [];
-        // 多组合时渲染选择器行；单一组合无切换意义
-        if (comboList.length > 1) {
+        // 多组合或有输入框维度时渲染控制栏（输入框需常驻）
+        if (comboList.length > 1 || spec.dims.some((d) => 'input' in d)) {
           childNodes.push(h('div', { className: ['ct-selectors'] }, rows));
         }
         return h('div', { className: ['code-tabs'], dataLang: langName }, [
