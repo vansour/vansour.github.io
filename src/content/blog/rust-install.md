@@ -1,12 +1,12 @@
 ---
-title: Rust 安装
+title: rust 安装
 description: 用官方 rustup 脚本安装 Rust 工具链，配置 mold 链接器并安装常用 cargo 工具。
 order: 3
 ---
 
 > 以下命令均需 **root** 权限执行。
 
-## 1. Rust 安装
+## 1. rust 安装
 
 ```bash
 bash <(curl -fsSL https://sh.rustup.rs)

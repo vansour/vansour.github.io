@@ -1,5 +1,5 @@
 ---
-title: Debian 常用脚本
+title: debian 常用脚本
 description: 重装系统、初始化环境、重置软件源、安装常用工具的一键命令合集，装完即用。
 order: 1
 ---

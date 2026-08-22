@@ -4,8 +4,8 @@ import { getPublishedPosts } from '../lib/posts';
 export async function GET(context: { site: URL }) {
   const posts = await getPublishedPosts();
   return rss({
-    title: 'Vansour Blog',
-    description: 'Vansour Blog',
+    title: 'vansour blog',
+    description: 'vansour blog',
     site: context.site,
     items: posts.map((post) => ({
       title: post.data.title,

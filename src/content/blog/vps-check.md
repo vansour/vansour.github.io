@@ -1,5 +1,5 @@
 ---
-title: VPS 检测
+title: vps 检测
 description: VPS 常用检测命令：IP/网络/硬件信息、TCP 质量、路由追踪、端口连通性。
 order: 5
 ---

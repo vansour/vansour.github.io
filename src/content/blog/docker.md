@@ -1,5 +1,5 @@
 ---
-title: Docker 使用
+title: docker 使用
 description: 安装 Docker 并附常用子命令示例，重点覆盖 docker compose。
 order: 7
 ---
@@ -42,7 +42,7 @@ docker inspect web                        # 详情
 docker stats                              # 资源占用
 ```
 
-## 4. Compose
+## 4. compose
 
 ```bash
 docker compose up -d             # 启动服务（后台）

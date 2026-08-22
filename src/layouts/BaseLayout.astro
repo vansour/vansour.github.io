@@ -11,7 +11,7 @@ interface Props {
   description?: string;
 }
 
-const siteTitle = 'Vansour Blog';
+const siteTitle = 'vansour blog';
 const { title = siteTitle, description } = Astro.props;
 const pageTitle = title === siteTitle ? siteTitle : `${title} · ${siteTitle}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);

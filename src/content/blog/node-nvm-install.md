@@ -1,5 +1,5 @@
 ---
-title: Node.js 安装
+title: node.js 安装
 description: 用 nvm 安装与切换 Node.js 版本，LTS / 22 / 24 / 26 一键切换。
 order: 4
 ---
