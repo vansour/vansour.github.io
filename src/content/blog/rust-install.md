@@ -9,7 +9,7 @@ order: 3
 ## 1. Rust 安装
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+bash <(curl -fsSL https://sh.rustup.rs)
 source ~/.cargo/env
 rustc -V
 cargo -V
