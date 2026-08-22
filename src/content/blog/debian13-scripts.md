@@ -8,16 +8,16 @@ order: 1
 
 > 以下命令均需 **root** 权限执行。
 
-## 1. 一键重装 Debian（可切换 14 / 13 / 12）
+## 1. 一键重装 Debian（可切换 12 / 13 / 14）
 
 ```code-tabs bash
-版本: Debian14=14 | Debian13=13 | Debian12=12
+版本: Debian12=12 | Debian13=13 | Debian14=14
 ---
 bash <(curl -fsSL "https://raw.githubusercontent.com/bin456789/reinstall/main/reinstall.sh") debian {版本}
 ```
 
 - 使用 [bin456789/reinstall](https://github.com/bin456789/reinstall) 开源重装脚本，网络安装官方纯净系统
-- 下拉选择 **Debian 14 / 13 / 12** 指定目标版本；不输入版本号则安装最新稳定版
+- 下拉选择 **Debian 12 / 13 / 14** 指定目标版本；不输入版本号则安装最新稳定版
 - ⚠️ Debian 14（forky）尚未正式发布，预计 2027 年发布；若重装脚本暂不支持 14，请改用 13 / 12
 - `curl -fsSL`：静默下载、出错即失败、跟随重定向；`<( )` 进程替换把下载内容直接喂给 bash
 - ⚠️ 会**清空磁盘所有数据**，执行前确认数据已备份
@@ -41,7 +41,7 @@ exec bash
 ## 3. 重置 apt 软件源（deb822 格式）
 
 ```code-tabs bash
-版本: Debian14=forky | Debian13=trixie | Debian12=bookworm
+版本: Debian12=bookworm | Debian13=trixie | Debian14=forky
 协议: http | https
 镜像: 官方=deb.debian.org | XTOM=mirrors.xtom.com | TUNA=mirrors.tuna.tsinghua.edu.cn
 ---
@@ -74,7 +74,7 @@ Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF
 ```
 
-- 下拉选择 **Debian 版本（14/13/12）**、**协议（http/https）** 与 **镜像源（官方 / XTOM / TUNA）**，复制按钮复制当前组合
+- 下拉选择 **Debian 版本（12/13/14）**、**协议（http/https）** 与 **镜像源（官方 / XTOM / TUNA）**，复制按钮复制当前组合
 - ⚠️ Debian 14（forky）尚在 testing 阶段，仅有 `forky` 与 `forky-security` 套件；若 `-updates` / `-backports` 报套件不存在，把 Suites 行精简为 `Suites: forky`（security 段同理）
 - 默认写入官方源 `deb.debian.org`，使用 **deb822 格式**（一个文件可声明多套源）
 - 覆盖 `main contrib non-free non-free-firmware` 全部组件，含 `deb-src` 源码源
