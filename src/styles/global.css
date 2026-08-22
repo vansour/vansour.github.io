@@ -546,53 +546,6 @@ main {
 }
 
 /* ==========================================================
-   上下篇导航
-   ========================================================== */
-
-.post-nav {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 8px 0 32px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-}
-
-.post-nav a {
-  display: block;
-  max-width: 48%;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--fg);
-  font-size: 15px;
-  transition: border-color 0.2s ease;
-}
-
-.post-nav a:hover {
-  border-color: var(--accent);
-  text-decoration: none;
-}
-
-.post-nav .nav-label {
-  display: block;
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-
-.post-nav .nav-title {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.post-nav .next {
-  text-align: right;
-}
-
-/* ==========================================================
    全部文章列表页
    ========================================================== */
 
@@ -810,14 +763,6 @@ mark {
 
   .article-header h1 {
     font-size: 26px;
-  }
-
-  .post-nav a {
-    max-width: 100%;
-  }
-
-  .post-nav .next {
-    text-align: left;
   }
 
   .kbd-hint {
