@@ -24,7 +24,7 @@ export async function copyText(text: string): Promise<boolean> {
   }
 }
 
-/** 从高亮后的代码块提取纯文本：逐行取 .line 文本再拼接（构建产物可能压缩换行）。 */
+/** 从代码块提取纯文本：优先逐行取 .line（兼容旧高亮输出），否则用 code 的 textContent。 */
 export function codeBlockText(pre: HTMLElement): string {
   const codeEl = pre.querySelector('code');
   const lines = codeEl ? [...codeEl.querySelectorAll('.line')].map((l) => l.textContent) : [];

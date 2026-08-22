@@ -8,7 +8,7 @@ import codeTabs from './src/plugins/code-tabs.ts';
 export default defineConfig({
   // 部署在 GitHub Pages + 自定义域名
   site: 'https://mhy.im',
-  // 输出 .html 文件：链接为 /blog/debian13-scripts.html
+  // 输出 .html 文件：链接为 /blog/debian-scripts.html
   build: {
     format: 'file',
   },
@@ -30,14 +30,7 @@ export default defineConfig({
   markdown: {
     // 保持 Astro 7 默认 Sätteri 处理器，并挂载多变体代码框插件
     processor: satteri({ hastPlugins: [codeTabs()] }),
-    // code-tabs 围栏由插件自行高亮，排除在内置高亮器之外（避免未知语言警告）
-    syntaxHighlight: { excludeLangs: ['code-tabs'] },
-    // 代码高亮：浅色/暗色各一套主题，随页面主题切换
-    shikiConfig: {
-      themes: {
-        light: 'github-light',
-        dark: 'github-dark-dimmed',
-      },
-    },
+    // 关闭代码高亮：代码区颜色由 CSS 变量控制，跟随站点主题
+    syntaxHighlight: false,
   },
 });

@@ -19,7 +19,6 @@
     "astro": "latest"
   },
   "devDependencies": {
-    "pagefind": "latest",
-    "shiki": "^4.4.3"
+    "pagefind": "latest"
   }
 }

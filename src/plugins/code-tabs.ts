@@ -15,26 +15,14 @@
  * - 头部每行一个维度：「维度名: 选项 | 选项」为下拉（选项可用 显示名=值 指定值）；
  *   「维度名: 输入 默认值」为输入框（自由文本，运行时由用户输入动态生成代码）
  * - `---` 之后是代码模板，`{维度名}` 占位符在渲染时替换为选中/输入值
- * - 构建期枚举全部组合并逐个 Shiki 高亮（浅/暗双主题，与全站一致），
+ * - 构建期枚举全部组合并逐个渲染为纯文本变体（颜色由 CSS 变量控制、随主题联动），
  *   运行时 JS 只切换显示，默认展示第一个组合（无 JS 也可用）
  *
- * 使用前提（astro.config.mjs）：
- * - `syntaxHighlight: { excludeLangs: ['code-tabs'] }`，避免内置高亮器处理该围栏
- * - `processor: satteri({ hastPlugins: [codeTabs()] })`
+ * 使用前提（astro.config.mjs）：`processor: satteri({ hastPlugins: [codeTabs()] })`，
+ * 并关闭高亮（syntaxHighlight: false），与全站「代码随主题」保持一致。
  */
 
-import { createHighlighter, type Highlighter } from 'shiki';
-
 const MAX_COMBOS = 24;
-
-let highlighterPromise: Promise<Highlighter> | null = null;
-function getHighlighter(): Promise<Highlighter> {
-  // 与 astro.config.mjs 的 shikiConfig 保持一致
-  highlighterPromise ??= createHighlighter({
-    themes: ['github-light', 'github-dark-dimmed'],
-  });
-  return highlighterPromise;
-}
 
 interface Option {
   label: string;
@@ -110,6 +98,7 @@ interface HastNode {
   properties?: Record<string, unknown>;
   children?: HastNode[];
   value?: string;
+  data?: Record<string, unknown>;
 }
 
 function h(
@@ -125,7 +114,7 @@ export default function codeTabs() {
     name: 'code-tabs',
     element: {
       filter: ['pre'],
-      async visit(node: HastNode, ctx: { textContent(node: HastNode): string }) {
+      visit(node: HastNode, ctx: { textContent(node: HastNode): string }) {
         const codeChild = node.children?.find(
           (c) => c.type === 'element' && c.tagName === 'code',
         );
@@ -145,17 +134,8 @@ export default function codeTabs() {
           );
         }
 
-        // 模板语言：围栏 meta（如 ```code-tabs bash 中的 bash）；未知语言回退纯文本
+        // 模板语言（围栏 meta，如 ```code-tabs bash 中的 bash）仅用于标注 data-language
         const meta = codeChild.data?.meta as string | undefined;
-        const targetLang = meta || 'plaintext';
-        const highlighter = await getHighlighter();
-        let loaded = true;
-        try {
-          await highlighter.loadLanguage(targetLang);
-        } catch {
-          loaded = false;
-        }
-        const langName = loaded ? targetLang : 'plaintext';
 
         // 选择器行：下拉维度 + 输入框维度（data-default 供运行时按默认值做文本替换）
         const rows = spec.dims.map((dim) =>
@@ -181,29 +161,22 @@ export default function codeTabs() {
           ]),
         );
 
-        // 全部组合的高亮变体；data-combo 为各维度取值按序拼接（值不含 |，见解析逻辑）
+        // 全部组合的纯文本变体；data-combo 为各维度取值按序拼接（值不含 |，见解析逻辑）
         const variants: HastNode[] = [];
         for (const combo of comboList) {
           const code = substitute(spec.template, spec.dims, combo);
-          // shiki v4 的 codeToHast 返回 root > pre，取 pre 作为变体节点
-          const tree = (await highlighter.codeToHast(code, {
-            lang: langName,
-            themes: { light: 'github-light', dark: 'github-dark-dimmed' },
-            defaultColor: 'light',
-          })) as HastNode;
-          const pre = tree.type === 'root' && tree.children?.[0] ? tree.children[0] : tree;
-
-          // 与 Astro 内置高亮输出对齐：astro-code 类 + data-language + 横向滚动
-          const props = pre.properties ?? {};
-          const cls = String(props.class ?? '').replace(/shiki/g, 'astro-code');
-          props.class = `${cls} code-variant`;
-          props.dataLanguage = langName;
-          props.style = `${props.style ?? ''}; overflow-x: auto;`;
-          props.dataCombo = comboList
-            .length > 1
-              ? spec.dims.map((d) => combo[d.name]).join('|')
-              : '';
-          variants.push(pre);
+          variants.push(
+            h(
+              'pre',
+              {
+                className: ['code-variant'],
+                style: 'overflow-x: auto;',
+                dataLanguage: meta ?? '',
+                dataCombo: comboList.length > 1 ? spec.dims.map((d) => combo[d.name]).join('|') : '',
+              },
+              [h('code', {}, [{ type: 'text', value: code }])],
+            ),
+          );
         }
         // 只显示第一个组合，其余 hidden（无 JS 时降级为默认组合）
         variants.forEach((v, i) => {
@@ -215,7 +188,7 @@ export default function codeTabs() {
         if (comboList.length > 1 || spec.dims.some((d) => 'input' in d)) {
           childNodes.push(h('div', { className: ['ct-selectors'] }, rows));
         }
-        return h('div', { className: ['code-tabs'], dataLang: langName }, [
+        return h('div', { className: ['code-tabs'], dataLang: meta ?? '' }, [
           ...childNodes,
           ...variants,
           h('button', { type: 'button', className: ['ct-copy'], ariaLabel: '复制代码' }, [

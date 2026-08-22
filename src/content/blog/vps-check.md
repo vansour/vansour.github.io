@@ -8,7 +8,13 @@ order: 5
 
 ```bash
 bash <(curl -fsSL Check.Place) -I
+```
+
+```bash
 bash <(curl -fsSL Check.Place) -N
+```
+
+```bash
 bash <(curl -fsSL Check.Place) -H
 ```
 

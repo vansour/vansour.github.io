@@ -738,17 +738,6 @@ main {
   text-underline-offset: 3px;
 }
 
-/* 代码高亮跟随站内主题切换：v7 输出浅色内联值 + 深色 CSS 变量，
-   在 data-theme=dark 时套用深色变量（官方推荐写法，媒体查询换成属性选择器） */
-:root[data-theme="dark"] .astro-code,
-:root[data-theme="dark"] .astro-code span {
-  color: var(--shiki-dark) !important;
-  background-color: var(--shiki-dark-bg) !important;
-  font-style: var(--shiki-dark-font-style) !important;
-  font-weight: var(--shiki-dark-font-weight) !important;
-  text-decoration: var(--shiki-dark-text-decoration) !important;
-}
-
 /* ==========================================================
    多变体代码框（code-tabs）
    结构由 src/plugins/code-tabs.ts 构建期生成：选择器行 + 全部组合的高亮变体

@@ -22,15 +22,15 @@ nginx -v
 ## 2. 反代配置
 
 ```code-tabs nginx
-域名: 输入 substore.vansour.org
-端口: 输入 9011
+域名: 输入 example.vansour.org
+端口: 输入 8080
 ---
 map $http_upgrade $connection_upgrade {
     default upgrade;
     ''      '';
 }
 
-upstream substore_backend {
+upstream example_backend {
     server 127.0.0.1:{端口};
     keepalive 128;
     keepalive_requests 1000;
@@ -56,8 +56,8 @@ server {
     gzip_proxied any;
 
     # ----- 证书 -----
-    ssl_certificate     /etc/nginx/ssl/vansour.org.pem;
-    ssl_certificate_key /etc/nginx/ssl/vansour.org.key;
+    ssl_certificate     /etc/nginx/ssl/example.vansour.org.pem;
+    ssl_certificate_key /etc/nginx/ssl/example.vansour.org.key;
 
     # ----- TLS：仅允许 1.2 / 1.3 -----
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -68,8 +68,8 @@ server {
     ssl_session_tickets off;
 
     # ----- 日志 -----
-    access_log /var/log/nginx/substore.access.log;
-    error_log  /var/log/nginx/substore.error.log warn;
+    access_log /var/log/nginx/example.access.log;
+    error_log  /var/log/nginx/example.error.log warn;
 
     # ----- 上传阈值 & 请求缓冲 -----
     client_max_body_size        100m;
@@ -99,7 +99,7 @@ server {
     proxy_set_header Connection $connection_upgrade;
 
     location / {
-        proxy_pass http://substore_backend;
+        proxy_pass http://example_backend;
     }
 }
 ```

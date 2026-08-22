@@ -41,6 +41,7 @@ cargo uninstall <crate>          # 卸载
 ```
 
 ```bash
+cargo install cargo-edit         # cargo add / cargo upgrade 依赖管理
 cargo install cargo-binstall     # 二进制安装（GitHub Releases 直接下载）
 cargo install cargo-nextest      # 高性能测试运行器
 cargo install cargo-audit        # 依赖漏洞审计
