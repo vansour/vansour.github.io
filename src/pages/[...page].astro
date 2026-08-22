@@ -11,9 +11,24 @@ export async function getStaticPaths({ paginate }) {
 
 const { page } = Astro.props;
 const pageTitle = page.currentPage === 1 ? undefined : `第 ${page.currentPage} 页`;
+const totalPosts = (await getPublishedPosts()).length;
 ---
 
 <BaseLayout title={pageTitle}>
+  {
+    page.currentPage === 1 && (
+      <section class="hero">
+        <p class="hero-terminal">~ $ whoami</p>
+        <h1 class="hero-title">Vansour</h1>
+        <p class="hero-subtitle">服务器运维与开发笔记</p>
+        <div class="hero-stats">
+          <span>{totalPosts} 篇文章</span>
+          <span>Astro 构建</span>
+          <span>mhy.im</span>
+        </div>
+      </section>
+    )
+  }
   {
     page.data.length === 0 ? (
       <p class="page-subtitle">暂无文章</p>
