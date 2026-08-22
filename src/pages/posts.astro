@@ -12,7 +12,7 @@ const posts = await getPublishedPosts();
     {
       posts.map((post) => (
         <li>
-          <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+          <a href={`/blog/${post.id}.html`}>{post.data.title}</a>
           <p>{post.data.description}</p>
         </li>
       ))

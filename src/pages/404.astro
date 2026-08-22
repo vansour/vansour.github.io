@@ -18,6 +18,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <script>
+  // 旧链接兼容：/blog/xxx/ → /blog/xxx.html
+  const trailing = location.pathname.match(/^(\/blog\/[^/]+)\/$/);
+  if (trailing) location.replace(`${trailing[1]}.html`);
+
   const form = document.getElementById('not-found-search');
   if (form) {
     const input = form.querySelector('input');
