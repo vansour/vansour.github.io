@@ -1,52 +1,110 @@
 ---
-// 暗色模式切换：点击后写入 localStorage，覆盖系统偏好
+// 主题面板：明暗切换 + 8 色强调色选择
+// 选择即生效并写入 localStorage（theme / accent），与 BaseLayout 防闪烁脚本配合
 ---
 
-<button type="button" class="icon-button" id="theme-toggle" aria-label="切换主题" title="切换主题">
-  <svg
-    class="icon-sun"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  ><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
-  <svg
-    class="icon-moon"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  ><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
-</button>
+<div class="theme-wrap">
+  <button
+    type="button"
+    class="icon-button"
+    id="theme-open"
+    aria-label="主题设置"
+    aria-expanded="false"
+    aria-controls="theme-panel"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    ><path d="M12 22a10 10 0 1 1 10-10"></path><path d="M12 22a10 10 0 1 0 10-10"></path><circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="5" r="0.5" fill="currentColor"></circle><circle cx="12" cy="19" r="0.5" fill="currentColor"></circle><circle cx="5" cy="12" r="0.5" fill="currentColor"></circle><circle cx="19" cy="12" r="0.5" fill="currentColor"></circle></svg>
+  </button>
 
-<style>
-  .icon-button svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  :root[data-theme='light'] .icon-sun {
-    display: none;
-  }
-
-  :root[data-theme='dark'] .icon-moon {
-    display: none;
-  }
-</style>
+  <div class="theme-panel" id="theme-panel" hidden>
+    <div class="theme-row">
+      <span class="theme-label">明暗</span>
+      <button type="button" class="theme-chip" data-mode="light">亮</button>
+      <button type="button" class="theme-chip" data-mode="dark">暗</button>
+    </div>
+    <div class="theme-row">
+      <span class="theme-label">颜色</span>
+      <button type="button" class="theme-swatch" data-color="blue" aria-label="蓝色"></button>
+      <button type="button" class="theme-swatch" data-color="green" aria-label="绿色"></button>
+      <button type="button" class="theme-swatch" data-color="purple" aria-label="紫色"></button>
+      <button type="button" class="theme-swatch" data-color="red" aria-label="红色"></button>
+      <button type="button" class="theme-swatch" data-color="orange" aria-label="橙色"></button>
+      <button type="button" class="theme-swatch" data-color="cyan" aria-label="青色"></button>
+      <button type="button" class="theme-swatch" data-color="pink" aria-label="粉色"></button>
+      <button type="button" class="theme-swatch" data-color="gray" aria-label="灰色"></button>
+    </div>
+  </div>
+</div>
 
 <script>
-  const toggle = document.getElementById('theme-toggle');
+  const open = document.getElementById('theme-open');
+  const panel = document.getElementById('theme-panel');
   const root = document.documentElement;
+  const ACCENTS = ['blue', 'green', 'purple', 'red', 'orange', 'cyan', 'pink', 'gray'];
 
-  toggle?.addEventListener('click', () => {
-    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-    root.dataset.theme = next;
-    localStorage.setItem('theme', next);
+  function sync() {
+    const mode = root.dataset.theme ?? 'light';
+    panel.querySelectorAll('.theme-chip').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+    });
+    const accent = ACCENTS.includes(root.dataset.accent) ? root.dataset.accent : 'blue';
+    panel.querySelectorAll('.theme-swatch').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.color === accent));
+    });
+  }
+
+  open.addEventListener('click', () => {
+    const show = panel.hidden;
+    panel.hidden = !show;
+    open.setAttribute('aria-expanded', String(show));
+    if (show) sync();
+  });
+
+  panel.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    const chip = target.closest('.theme-chip');
+    if (chip) {
+      root.dataset.theme = chip.dataset.mode;
+      localStorage.setItem('theme', chip.dataset.mode);
+      sync();
+      return;
+    }
+
+    const swatch = target.closest('.theme-swatch');
+    if (swatch) {
+      root.dataset.accent = swatch.dataset.color;
+      localStorage.setItem('accent', swatch.dataset.color);
+      sync();
+    }
+  });
+
+  // Esc 或点击面板外关闭
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !panel.hidden) {
+      panel.hidden = true;
+      open.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (
+      event.target instanceof Element &&
+      !event.target.closest('.theme-wrap') &&
+      !panel.hidden
+    ) {
+      panel.hidden = true;
+      open.setAttribute('aria-expanded', 'false');
+    }
   });
 </script>

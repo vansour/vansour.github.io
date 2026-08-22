@@ -27,16 +27,26 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- MiSans 字体（自托管，unicode-range 分片按需加载；字重映射 330/520/630） -->
+    <link rel="stylesheet" href="/fonts/misans/MiSans-Regular.min.css" />
+    <link rel="stylesheet" href="/fonts/misans/MiSans-Semibold.min.css" />
+    <link rel="stylesheet" href="/fonts/misans/MiSans-Bold.min.css" />
     <link rel="alternate" type="application/rss+xml" title={siteTitle} href="/rss.xml" />
     <meta name="generator" content={Astro.generator} />
     <script is:inline>
-      // 防闪烁：首帧渲染前读取主题偏好（本地存储 > 系统设置 > 默认浅色）
+      // 防闪烁：首帧渲染前读取主题偏好（本地存储 > 系统设置 > 默认浅色）与强调色
       (function () {
+        const root = document.documentElement;
         const stored = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const theme =
           stored === 'light' || stored === 'dark' ? stored : prefersDark ? 'dark' : 'light';
-        document.documentElement.dataset.theme = theme;
+        const ACCENTS = ['blue', 'green', 'purple', 'red', 'orange', 'cyan', 'pink', 'gray'];
+        const accent = ACCENTS.includes(localStorage.getItem('accent'))
+          ? localStorage.getItem('accent')
+          : 'blue';
+        root.dataset.theme = theme;
+        root.dataset.accent = accent;
       })();
     </script>
   </head>
