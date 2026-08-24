@@ -31,18 +31,32 @@
 </div>
 
 <script>
-  const dialog = document.getElementById('search-dialog');
-  const input = document.getElementById('search-input');
-  const resultsEl = document.getElementById('search-results');
+  interface PagefindResult {
+    data(): Promise<{
+      url: string;
+      title?: string;
+      meta?: { title?: string };
+      excerpt?: string;
+    }>;
+  }
 
-  /** @type {any} 懒加载的 Pagefind 模块，未构建索引时为 null */
-  let pagefind = null;
-  let searchTimer = null;
+  interface PagefindModule {
+    search(query: string): Promise<{ results?: PagefindResult[] }>;
+  }
+
+  const dialog = document.querySelector<HTMLElement>('#search-dialog');
+  const input = document.querySelector<HTMLInputElement>('#search-input');
+  const resultsEl = document.querySelector<HTMLElement>('#search-results');
+  const pagefindModulePath = '/pagefind/pagefind.js';
+
+  // 懒加载的 Pagefind 模块；开发环境没有构建索引时保持 null。
+  let pagefind: PagefindModule | null = null;
+  let searchTimer: number | undefined;
 
   async function loadPagefind() {
     if (pagefind) return pagefind;
     try {
-      pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind.js');
+      pagefind = (await import(/* @vite-ignore */ pagefindModulePath)) as PagefindModule;
       return pagefind;
     } catch {
       return null;
@@ -65,17 +79,18 @@
     input?.blur();
   }
 
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, (c) => ({
+  function escapeHtml(value: unknown): string {
+    const escaped = {
       '&': '&amp;',
       '<': '&lt;',
       '>': '&gt;',
       '"': '&quot;',
       "'": '&#39;',
-    })[c]);
+    } as const;
+    return String(value).replace(/[&<>"']/g, (character) => escaped[character as keyof typeof escaped]);
   }
 
-  async function runSearch(query) {
+  async function runSearch(query: string) {
     if (!resultsEl) return;
     const trimmed = query.trim();
     if (!trimmed) {
@@ -97,7 +112,7 @@
       return;
     }
 
-    const html = [];
+    const html: string[] = [];
     for (const item of items.slice(0, 10)) {
       const data = await item.data();
       // 标题在 meta.title（pagefind 1.5 结构），url/title 需转义；excerpt 自带 <mark> 标签所以不转义
@@ -105,20 +120,22 @@
       html.push(`
         <a class="search-result" href="${escapeHtml(data.url)}">
           <h4>${escapeHtml(title)}</h4>
-          <p>${data.excerpt}</p>
+          <p>${data.excerpt ?? ''}</p>
         </a>`);
     }
     resultsEl.innerHTML = html.join('');
   }
 
-  input?.addEventListener('input', (event) => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => runSearch(event.target.value), 150);
-  });
+  if (input) {
+    input.addEventListener('input', () => {
+      if (searchTimer !== undefined) window.clearTimeout(searchTimer);
+      searchTimer = window.setTimeout(() => void runSearch(input.value), 150);
+    });
 
-  input?.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') close();
-  });
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') close();
+    });
+  }
 
   // 点击遮罩（面板外）关闭
   dialog?.addEventListener('click', (event) => {
@@ -130,10 +147,11 @@
 
   // 快捷键：Ctrl/Cmd+K 或 `/`（输入框内除外）
   document.addEventListener('keydown', (event) => {
+    const target = event.target;
     const typing =
-      event.target instanceof HTMLInputElement ||
-      event.target instanceof HTMLTextAreaElement ||
-      event.target?.isContentEditable;
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      (target instanceof HTMLElement && target.isContentEditable);
 
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
       event.preventDefault();

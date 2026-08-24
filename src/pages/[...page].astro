@@ -1,15 +1,17 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostCard from '../components/PostCard.astro';
+import type { GetStaticPaths, Page } from 'astro';
+import type { CollectionEntry } from 'astro:content';
 import { getPublishedPosts } from '../lib/posts';
 
-export async function getStaticPaths({ paginate }) {
+export const getStaticPaths = (async ({ paginate }) => {
   const posts = await getPublishedPosts();
   // 空文章时 paginate 仍返回 1 个空页，模板里显示空态
   return paginate(posts, { pageSize: 10 });
-}
+}) satisfies GetStaticPaths;
 
-const { page } = Astro.props;
+const { page } = Astro.props as { page: Page<CollectionEntry<'blog'>> };
 const pageTitle = page.currentPage === 1 ? undefined : `第 ${page.currentPage} 页`;
 const totalPosts = (await getPublishedPosts()).length;
 ---

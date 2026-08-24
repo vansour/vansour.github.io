@@ -9,12 +9,14 @@ import CodeTabs from '../components/CodeTabs.astro';
 interface Props {
   title?: string;
   description?: string;
+  searchable?: boolean;
 }
 
 const siteTitle = 'vansour blog';
-const { title = siteTitle, description } = Astro.props;
+const { title = siteTitle, description, searchable = true } = Astro.props;
 const pageTitle = title === siteTitle ? siteTitle : `${title} · ${siteTitle}`;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const canonicalPath = Astro.url.pathname === '/index.html' ? '/' : Astro.url.pathname;
+const canonical = new URL(canonicalPath, Astro.site);
 ---
 
 <!doctype html>
@@ -52,8 +54,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   </head>
   <body>
     <Header />
-    <!-- data-pagefind-body：搜索只索引正文区域，排除导航/页脚 -->
-    <main class="container" data-pagefind-body>
+    <!-- data-pagefind-body：搜索只索引正文区域，排除导航/页脚；404 等页面可选择退出索引 -->
+    <main class="container" data-pagefind-body={searchable ? '' : undefined}>
       <slot />
     </main>
     <Footer />

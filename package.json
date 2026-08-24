@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "check": "astro check",
     "build": "node -e \"require('node:fs').rmSync('node_modules/.astro',{recursive:true,force:true})\" && astro build && pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro"
@@ -19,6 +20,8 @@
     "astro": "latest"
   },
   "devDependencies": {
-    "pagefind": "latest"
+    "@astrojs/check": "latest",
+    "pagefind": "latest",
+    "typescript": "6.0.3"
   }
 }

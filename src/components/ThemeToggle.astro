@@ -46,65 +46,78 @@
 </div>
 
 <script>
-  const open = document.getElementById('theme-open');
-  const panel = document.getElementById('theme-panel');
+  const open = document.querySelector<HTMLButtonElement>('#theme-open');
+  const panel = document.querySelector<HTMLElement>('#theme-panel');
   const root = document.documentElement;
-  const ACCENTS = ['blue', 'green', 'purple', 'red', 'orange', 'cyan', 'pink', 'gray'];
+  const ACCENTS = ['blue', 'green', 'purple', 'red', 'orange', 'cyan', 'pink', 'gray'] as const;
 
-  function sync() {
-    const mode = root.dataset.theme ?? 'light';
-    panel.querySelectorAll('.theme-chip').forEach((b) => {
-      b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
-    });
-    const accent = ACCENTS.includes(root.dataset.accent) ? root.dataset.accent : 'blue';
-    panel.querySelectorAll('.theme-swatch').forEach((b) => {
-      b.setAttribute('aria-pressed', String(b.dataset.color === accent));
-    });
+  type Accent = (typeof ACCENTS)[number];
+
+  function isAccent(value: string | undefined): value is Accent {
+    return ACCENTS.some((accent) => accent === value);
   }
 
-  open.addEventListener('click', () => {
-    const show = panel.hidden;
-    panel.hidden = !show;
-    open.setAttribute('aria-expanded', String(show));
-    if (show) sync();
-  });
+  if (open && panel) {
+    const themeOpen = open;
+    const themePanel = panel;
 
-  panel.addEventListener('click', (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-
-    const chip = target.closest('.theme-chip');
-    if (chip) {
-      root.dataset.theme = chip.dataset.mode;
-      localStorage.setItem('theme', chip.dataset.mode);
-      sync();
-      return;
+    function sync() {
+      const mode = root.dataset.theme ?? 'light';
+      themePanel.querySelectorAll<HTMLButtonElement>('.theme-chip').forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.dataset.mode === mode));
+      });
+      const accent = isAccent(root.dataset.accent) ? root.dataset.accent : 'blue';
+      themePanel.querySelectorAll<HTMLButtonElement>('.theme-swatch').forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.dataset.color === accent));
+      });
     }
 
-    const swatch = target.closest('.theme-swatch');
-    if (swatch) {
-      root.dataset.accent = swatch.dataset.color;
-      localStorage.setItem('accent', swatch.dataset.color);
-      sync();
-    }
-  });
+    themeOpen.addEventListener('click', () => {
+      const show = themePanel.hidden;
+      themePanel.hidden = !show;
+      themeOpen.setAttribute('aria-expanded', String(show));
+      if (show) sync();
+    });
 
-  // Esc 或点击面板外关闭
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !panel.hidden) {
-      panel.hidden = true;
-      open.setAttribute('aria-expanded', 'false');
-    }
-  });
+    themePanel.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
 
-  document.addEventListener('click', (event) => {
-    if (
-      event.target instanceof Element &&
-      !event.target.closest('.theme-wrap') &&
-      !panel.hidden
-    ) {
-      panel.hidden = true;
-      open.setAttribute('aria-expanded', 'false');
-    }
-  });
+      const chip = target.closest<HTMLButtonElement>('.theme-chip');
+      const mode = chip?.dataset.mode;
+      if (mode === 'light' || mode === 'dark') {
+        root.dataset.theme = mode;
+        localStorage.setItem('theme', mode);
+        sync();
+        return;
+      }
+
+      const swatch = target.closest<HTMLButtonElement>('.theme-swatch');
+      const color = swatch?.dataset.color;
+      if (isAccent(color)) {
+        root.dataset.accent = color;
+        localStorage.setItem('accent', color);
+        sync();
+      }
+    });
+
+    // Esc 或点击面板外关闭
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !themePanel.hidden) {
+        themePanel.hidden = true;
+        themeOpen.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (
+        event.target instanceof Element &&
+        !event.target.closest('.theme-wrap') &&
+        !themePanel.hidden
+      ) {
+        themePanel.hidden = true;
+        themeOpen.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
 </script>

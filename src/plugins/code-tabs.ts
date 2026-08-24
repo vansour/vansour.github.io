@@ -22,6 +22,8 @@
  * 并关闭高亮（syntaxHighlight: false），与全站「代码随主题」保持一致。
  */
 
+import type { Element, ElementContent, Properties, Text } from 'hast';
+
 const MAX_COMBOS = 24;
 
 interface Option {
@@ -92,21 +94,25 @@ function substitute(template: string, dims: Dimension[], combo: Record<string, s
   return code;
 }
 
-interface HastNode {
-  type: string;
-  tagName?: string;
-  properties?: Record<string, unknown>;
-  children?: HastNode[];
-  value?: string;
-  data?: Record<string, unknown>;
-}
-
 function h(
   tagName: string,
-  properties: Record<string, unknown> = {},
-  children: HastNode[] = [],
-): HastNode {
+  properties: Properties = {},
+  children: ElementContent[] = [],
+): Element {
   return { type: 'element', tagName, properties, children };
+}
+
+function text(value: string): Text {
+  return { type: 'text', value };
+}
+
+function dataValue(node: Readonly<Element>, key: string): string | undefined {
+  const value = (node.data as Record<string, unknown> | undefined)?.[key];
+  return typeof value === 'string' ? value : undefined;
+}
+
+interface CodeTabsContext {
+  textContent(node: Readonly<Element>): string;
 }
 
 export default function codeTabs() {
@@ -114,12 +120,12 @@ export default function codeTabs() {
     name: 'code-tabs',
     element: {
       filter: ['pre'],
-      visit(node: HastNode, ctx: { textContent(node: HastNode): string }) {
+      visit(node: Readonly<Element>, ctx: CodeTabsContext) {
         const codeChild = node.children?.find(
-          (c) => c.type === 'element' && c.tagName === 'code',
+          (child): child is Element => child.type === 'element' && child.tagName === 'code',
         );
         if (!codeChild) return;
-        if (codeChild.data?.lang !== 'code-tabs') return;
+        if (dataValue(codeChild, 'lang') !== 'code-tabs') return;
 
         const spec = parseSpec(ctx.textContent(codeChild));
         if (!spec) {
@@ -135,12 +141,12 @@ export default function codeTabs() {
         }
 
         // 模板语言（围栏 meta，如 ```code-tabs bash 中的 bash）仅用于标注 data-language
-        const meta = codeChild.data?.meta as string | undefined;
+        const meta = dataValue(codeChild, 'meta');
 
         // 选择器行：下拉维度 + 输入框维度（data-default 供运行时按默认值做文本替换）
         const rows = spec.dims.map((dim) =>
           h('div', { className: ['ct-row'] }, [
-            h('label', { className: ['ct-label'] }, [{ type: 'text', value: dim.name }]),
+            h('label', { className: ['ct-label'] }, [text(dim.name)]),
             'input' in dim
               ? h('input', {
                   type: 'text',
@@ -154,17 +160,20 @@ export default function codeTabs() {
                     h(
                       'option',
                       { value: opt.value, selected: i === 0 },
-                      [{ type: 'text', value: opt.label }],
+                      [text(opt.label)],
                     ),
                   ),
                 ]),
           ]),
         );
 
-        // 全部组合的纯文本变体；data-combo 为各维度取值按序拼接（值不含 |，见解析逻辑）
-        const variants: HastNode[] = [];
+        // 全部组合的纯文本变体；data-combo 只编码下拉维度。
+        // 输入维度只有一个构建期默认值，由运行时直接替换文本，不应参与组合匹配。
+        const selectDims = spec.dims.filter((dim) => 'options' in dim);
+        const variants: Element[] = [];
         for (const combo of comboList) {
           const code = substitute(spec.template, spec.dims, combo);
+          const comboKey = selectDims.map((dim) => combo[dim.name]).join('|');
           variants.push(
             h(
               'pre',
@@ -172,9 +181,9 @@ export default function codeTabs() {
                 className: ['code-variant'],
                 style: 'overflow-x: auto;',
                 dataLanguage: meta ?? '',
-                dataCombo: comboList.length > 1 ? spec.dims.map((d) => combo[d.name]).join('|') : '',
+                dataCombo: comboKey,
               },
-              [h('code', {}, [{ type: 'text', value: code }])],
+              [h('code', {}, [text(code)])],
             ),
           );
         }
@@ -183,7 +192,7 @@ export default function codeTabs() {
           if (i > 0) (v.properties ?? {}).hidden = true;
         });
 
-        const childNodes: HastNode[] = [];
+        const childNodes: ElementContent[] = [];
         // 多组合或有输入框维度时渲染控制栏（输入框需常驻）
         if (comboList.length > 1 || spec.dims.some((d) => 'input' in d)) {
           childNodes.push(h('div', { className: ['ct-selectors'] }, rows));
@@ -192,7 +201,7 @@ export default function codeTabs() {
           ...childNodes,
           ...variants,
           h('button', { type: 'button', className: ['ct-copy'], ariaLabel: '复制代码' }, [
-            { type: 'text', value: '复制' },
+            text('复制'),
           ]),
         ]);
       },

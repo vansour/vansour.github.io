@@ -8,7 +8,7 @@
   import { copyText, codeBlockText } from '../lib/code-copy';
 
   function initCopyButtons() {
-    const pres = [...document.querySelectorAll('.prose pre')].filter(
+    const pres = [...document.querySelectorAll<HTMLPreElement>('.prose pre')].filter(
       (pre) => !pre.closest('.code-tabs'),
     );
     if (!pres.length) return;

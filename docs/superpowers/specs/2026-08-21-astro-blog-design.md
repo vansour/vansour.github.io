@@ -1,7 +1,7 @@
 # 个人博客设计文档（Astro + GitHub Pages）
 
 日期：2026-08-21
-状态：已获用户确认；2026-08-22 同步实现状态（refactor: simplify blog 移除标签/归档/日期，新增 order 排序与全部文章页）
+状态：已获用户确认；2026-08-24 同步实现状态（静态文件 URL、code-tabs、主题系统与 Pagefind）
 
 ## 背景与目标
 
@@ -17,7 +17,7 @@
 对比过三条路线后选用 **方案 A：纯静态 Markdown 博客**：
 
 - 内容以纯 Markdown 存放，Content Collections 做 schema 校验，构建时生成全部页面
-- 零运行时 JS（默认），性能最佳
+- 无框架运行时；主题、搜索、导航、代码复制和 code-tabs 使用少量原生 JS
 - 内容可移植，升级 MDX 的路径平滑（`.md` → `.mdx` 即可）
 - 被否方案：MDX 增强版（对纯文字+代码的博客过度）、无头 CMS 驱动（个人博客用 Git 发布已经是最好的流程）
 
@@ -26,17 +26,19 @@
 | 依赖 | 用途 |
 |---|---|
 | `astro`（v7，需 Node 22.12+；本仓库用 Node 26） | 核心框架，静态输出 |
+| `@astrojs/markdown-satteri` | Astro 7 Markdown 处理器与 HAST 插件挂载 |
 | `@astrojs/rss` | RSS 订阅生成 |
 | `@astrojs/sitemap` | sitemap.xml（SEO） |
 | `pagefind` | 站内搜索索引（构建时生成，无后端） |
+| `@astrojs/check` + TypeScript 6 | Astro/TypeScript 静态检查（使用与 `@astrojs/check` 兼容的最新 6.x） |
 | CSS 变量 | 代码区颜色由 `--fg`/`--code-bg` 控制，随主题联动 |
 
-不使用任何 UI 框架。全站唯一的运行时 JS：暗色切换与搜索弹窗（原生 JS）。
+不使用任何 UI 框架。代码高亮关闭，代码区由 CSS 变量控制；code-tabs 在构建期枚举组合，运行时只做选择、文本替换和复制。
 
 ## 2. 目录结构
 
 ```
-├── astro.config.mjs        # site 配置 + sitemap 集成 + shiki 双主题
+├── astro.config.mjs        # site 配置 + sitemap 集成 + Sätteri/code-tabs
 ├── public/
 │   ├── favicon.png         # 站点图标（PNG，含 apple-touch-icon.png）
 │   ├── CNAME               # 自定义域名 mhy.im
@@ -50,16 +52,17 @@
     ├── components/
     │   ├── Header.astro        # 导航栏 + 主题切换 + 搜索入口
     │   ├── Footer.astro
-    │   ├── ThemeToggle.astro   # 暗色切换（唯一 JS 交互之一）
+    │   ├── ThemeToggle.astro   # 明暗模式与强调色切换
     │   ├── SearchDialog.astro  # Pagefind 弹窗（Ctrl+K / `/` 唤起）
     │   ├── PostCard.astro      # 首页文章卡片
-    │   └── CopyCodeButton.astro# 代码块复制按钮
+    │   ├── CopyCodeButton.astro# 普通代码块复制按钮
+    │   └── CodeTabs.astro      # 多变体代码框交互
     ├── lib/
     │   └── posts.ts            # 取已发布文章 + order 排序
     ├── pages/
     │   ├── [...page].astro     # 首页：文章卡片分页（每页 10 篇）
     │   ├── posts.astro         # 全部文章列表
-    │   ├── blog/[slug].astro   # 文章详情（getStaticPaths + 上下篇）
+    │   ├── blog/[slug].astro   # 文章详情（getStaticPaths）
     │   ├── about.astro         # 关于页
     │   ├── rss.xml.ts          # RSS
     │   └── 404.astro           # 带搜索引导的 404
@@ -88,7 +91,7 @@ schema: z.object({
 
 - **首页**：文章卡片列表（标题、摘要）+ 分页器
 - **全部文章页**：`/posts`，全量文章列表
-- **文章页**：标题、正文、上一篇/下一篇导航（按排序后列表顺序）
+- **文章页**：标题和 Markdown 正文
 - **关于页**：静态内容，个人介绍
 - **RSS**：`@astrojs/rss`，输出全部已发布文章
 - **404**：带搜索引导，避免死胡同
@@ -118,8 +121,8 @@ schema: z.object({
 
 ### 字体
 
-- 正文：`system-ui, -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif`
-- 代码：`ui-monospace, "JetBrains Mono", "Cascadia Code", monospace`
+- 正文：自托管 MiSans，回退到系统中文无衬线字体
+- 代码：`SimSun`/`宋体`，回退到系统等宽字体
 
 ### 排版基调
 
@@ -130,6 +133,7 @@ schema: z.object({
 - 构建后运行 `pagefind --site dist` 生成静态索引
 - `Ctrl+K` / `/` 快捷键或导航栏搜索图标唤起弹窗
 - 结果高亮匹配片段（`meta.title` 为标题，excerpt 自带 `<mark>` 标签），点击直达文章
+- 404 页面不参与索引，避免错误页出现在搜索结果中
 - 新文章构建时自动进索引，无需配置
 
 ## 7. 发布流程（GitHub Actions）
@@ -171,3 +175,9 @@ jobs:
 1. 新建 `src/content/blog/xxx.md`，填写 frontmatter（`title`、`description`，可选 `order` / `draft`）+ 正文
 2. 本地 `npm run dev` 预览
 3. `git push` → Actions 自动构建部署
+
+## 9. 本地验证
+
+- `npm run check`：Astro/TypeScript 检查
+- `npm run build`：生产页面、RSS、sitemap 和 Pagefind 索引
+- `npm run preview`：预览 `dist` 构建产物

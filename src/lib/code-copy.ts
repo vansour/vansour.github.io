@@ -16,7 +16,11 @@ export async function copyText(text: string): Promise<boolean> {
     ta.style.opacity = '0';
     document.body.appendChild(ta);
     ta.select();
-    const ok = document.execCommand('copy');
+    // Clipboard API 不可用时保留 http 本地预览的兼容路径。
+    const execCommand = Reflect.get(document, 'execCommand') as
+      | ((command: string) => boolean)
+      | undefined;
+    const ok = execCommand?.call(document, 'copy') ?? false;
     ta.remove();
     return ok;
   } catch {

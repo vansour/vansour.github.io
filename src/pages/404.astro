@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="404" description="页面不存在">
+<BaseLayout title="404" description="页面不存在" searchable={false}>
   <div class="not-found">
     <p class="code">404</p>
     <h1>页面不存在</h1>
@@ -22,17 +22,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   const trailing = location.pathname.match(/^(\/blog\/[^/]+)\/$/);
   if (trailing) location.replace(`${trailing[1]}.html`);
 
-  const form = document.getElementById('not-found-search');
-  if (form) {
-    const input = form.querySelector('input');
+  interface PagefindResult {
+    data(): Promise<{ url: string }>;
+  }
 
+  interface PagefindModule {
+    search(query: string): Promise<{ results?: PagefindResult[] }>;
+  }
+
+  const form = document.querySelector<HTMLFormElement>('#not-found-search');
+  const input = form?.querySelector<HTMLInputElement>('input');
+  const pagefindModulePath = '/pagefind/pagefind.js';
+
+  if (form && input) {
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       const query = input.value.trim();
       if (!query) return;
 
       try {
-        const pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind.js');
+        const pagefind = (await import(/* @vite-ignore */ pagefindModulePath)) as PagefindModule;
         const search = await pagefind.search(query);
         const first = search?.results?.[0];
         if (first) {

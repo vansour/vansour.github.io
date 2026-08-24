@@ -7,8 +7,9 @@
 - Astro（静态输出）+ GitHub Pages Actions 部署
 - Content Collections 管理文章（zod 校验 frontmatter）
 - Pagefind 站内搜索（构建时生成索引）
+- @astrojs/check + TypeScript 静态检查
 - 代码区颜色由 CSS 变量控制，随站点明暗/主题联动
-- RSS / Sitemap / 暗色模式，全站零框架运行时 JS
+- RSS / Sitemap / 暗色模式，无 UI 框架，交互使用原生 JS
 
 ## 本地开发
 
@@ -16,6 +17,7 @@
 nvm use          # Node 26（见 .nvmrc）
 npm install
 npm run dev      # 开发预览 http://localhost:4321
+npm run check    # Astro / TypeScript 检查
 npm run build    # 构建 + 生成搜索索引
 npm run preview  # 预览构建产物
 ```
