@@ -9,7 +9,7 @@ order: 4
 ```code-tabs bash
 版本: LTS=--lts | Node22=22 | Node24=24 | Node26=26
 ---
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/latest/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 source ~/.bashrc
 nvm install {版本}
 node -v
