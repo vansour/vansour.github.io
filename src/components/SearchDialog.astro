@@ -75,8 +75,9 @@
 
   function close() {
     if (dialog) dialog.hidden = true;
-    // 失焦，否则按 / 会因「输入中」守卫而无法再次唤起
+    // 失焦并归还焦点给搜索按钮，否则按 / 会因「输入中」守卫而无法再次唤起
     input?.blur();
+    document.getElementById('search-open')?.focus();
   }
 
   function escapeHtml(value: unknown): string {
@@ -140,6 +141,27 @@
   // 点击遮罩（面板外）关闭
   dialog?.addEventListener('click', (event) => {
     if (event.target === dialog) close();
+  });
+
+  // 焦点陷阱：打开时把焦点限制在弹窗内，Tab/Shift+Tab 循环，不逃到背景页面
+  dialog?.addEventListener('keydown', (event) => {
+    if (dialog?.hidden) return;
+    if (event.key !== 'Tab') return;
+    const focusables = [
+      ...dialog.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ].filter((el) => !el.hidden);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   });
 
   // 打开入口：导航栏搜索图标

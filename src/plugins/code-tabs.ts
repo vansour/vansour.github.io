@@ -17,6 +17,9 @@
  * - `---` 之后是代码模板，`{维度名}` 占位符在渲染时替换为选中/输入值
  * - 构建期枚举全部组合并逐个渲染为纯文本变体（颜色由 CSS 变量控制、随主题联动），
  *   运行时 JS 只切换显示，默认展示第一个组合（无 JS 也可用）
+ * - 语法约束：选项分隔符为 `|`，`显示名=值` 中的 `=` 只取**首个**（值内可含 `=`，
+ *   如 `镜像=官方=https://deb.debian.org/debian`）；选项值（`=` 后部分）**不得包含
+ *   `|`**——它同时是运行时组合匹配的分隔符，含 `|` 会使变体匹配错乱（构建期会报错）
  *
  * 使用前提（astro.config.mjs）：`processor: satteri({ hastPlugins: [codeTabs()] })`，
  * 并关闭高亮（syntaxHighlight: false），与全站「代码随主题」保持一致。
@@ -67,6 +70,12 @@ function parseSpec(raw: string): { dims: Dimension[]; template: string } | null 
       })
       .filter((o) => o.value.length > 0);
     if (options.length === 0) return null;
+    // 选项值含 | 会与运行时组合分隔符冲突，构建期直接报错而非静默生成错乱变体
+    if (options.some((o) => o.value.includes('|'))) {
+      throw new Error(
+        `[code-tabs] 维度「${name}」的选项值包含保留字符 |（值内不允许出现 |，它是选项与组合的分隔符）`,
+      );
+    }
     dims.push({ name, options });
   }
   if (dims.length === 0) return null;

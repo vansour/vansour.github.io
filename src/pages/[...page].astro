@@ -43,7 +43,8 @@ const totalPosts = page.total;
           page.lastPage > 1 && (
             <nav class="pagination" aria-label="分页">
               {page.url.prev ? (
-                <a href={page.url.prev}>← 上一页</a>
+                // page.url.prev 在第 1 页前一页是根路径 '/'（无后缀），需保持根 URL
+                <a href={page.url.prev === '/' ? '/' : `${page.url.prev}.html`}>← 上一页</a>
               ) : (
                 <span class="disabled">← 上一页</span>
               )}
@@ -51,7 +52,7 @@ const totalPosts = page.total;
                 第 {page.currentPage} / {page.lastPage} 页
               </span>
               {page.url.next ? (
-                <a href={page.url.next}>下一页 →</a>
+                <a href={`${page.url.next}.html`}>下一页 →</a>
               ) : (
                 <span class="disabled">下一页 →</span>
               )}

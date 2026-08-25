@@ -51,6 +51,16 @@
   const root = document.documentElement;
   const ACCENTS = ['blue', 'green', 'purple', 'red', 'orange', 'cyan', 'pink', 'gray'] as const;
 
+  // 隐私模式（Safari 严格）下 localStorage 写入会抛 QuotaExceededError/SecurityError；
+  // 选择仅生效于本次会话，不持久化
+  function savePreference(key: string, value: string) {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // 存储不可用：忽略
+    }
+  }
+
   type Accent = (typeof ACCENTS)[number];
 
   function isAccent(value: string | undefined): value is Accent {
@@ -87,7 +97,7 @@
       const mode = chip?.dataset.mode;
       if (mode === 'light' || mode === 'dark') {
         root.dataset.theme = mode;
-        localStorage.setItem('theme', mode);
+        savePreference('theme', mode);
         sync();
         return;
       }
@@ -96,7 +106,7 @@
       const color = swatch?.dataset.color;
       if (isAccent(color)) {
         root.dataset.accent = color;
-        localStorage.setItem('accent', color);
+        savePreference('accent', color);
         sync();
       }
     });

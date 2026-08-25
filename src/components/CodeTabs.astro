@@ -1,6 +1,7 @@
 ---
 // 多变体代码框交互：选择器切换组合、输入替换和复制当前组合。
-// 构建期默认输出纯文本；若未来重新启用高亮，也会在输入恢复默认时还原原始 HTML。
+// 构建期产物是纯文本变体；输入替换始终基于默认值模板从零重算，
+// 用户输入不再需要匹配模板位置（原实现每次替换原文，输入不匹配时会被吞掉）。
 ---
 
 <script>
@@ -12,16 +13,12 @@
       const selects = [...tabs.querySelectorAll<HTMLSelectElement>('.ct-select')];
       const inputs = [...tabs.querySelectorAll<HTMLInputElement>('.ct-input')];
 
-      // 记录每个变体的原始代码。文本是替换基准，HTML 用于恢复高亮或默认状态。
-      const originals = new Map<HTMLPreElement, { code: HTMLElement; html: string; text: string }>();
+      // 记录每个变体的原始代码文本（textContent，替换基准）
+      const originals = new Map<HTMLPreElement, { code: HTMLElement; text: string }>();
       variants.forEach((pre) => {
         const code = pre.querySelector<HTMLElement>('code');
         if (!code) return;
-        originals.set(pre, {
-          code,
-          html: code.innerHTML,
-          text: code.textContent ?? '',
-        });
+        originals.set(pre, { code, text: code.textContent ?? '' });
       });
 
       const update = () => {
@@ -32,29 +29,22 @@
         patchInputs();
       };
 
-      // 输入框维度：始终从原始文本开始替换，避免连续输入造成重复替换；
-      // 输入恢复默认时还原原始 HTML。
+      // 输入框维度：从每个变体的原始文本出发，把「默认值」替换为当前输入。
+      // 输入与默认值不一致时全部替换；恢复默认值时写回原始文本（纯文本节点，无 HTML 注入）。
       const patchInputs = () => {
-        const active = variants.find((pre) => !pre.hidden);
-        if (!active) return;
-        const original = originals.get(active);
-        if (!original) return;
+        variants.forEach((pre) => {
+          if (pre.hidden) return;
+          const original = originals.get(pre);
+          if (!original) return;
 
-        let text = original.text;
-        let changed = false;
-        for (const input of inputs) {
-          const defaultValue = input.dataset.default ?? '';
-          if (!defaultValue || input.value === defaultValue) continue;
-          changed = true;
-          text = text.split(defaultValue).join(input.value);
-        }
-
-        if (!changed) {
-          if (original.code.innerHTML !== original.html) original.code.innerHTML = original.html;
-        } else if (original.code.textContent !== text) {
-          // 纯文本构建产物没有 .line；改变输入时安全地写入文本节点，避免 HTML 注入。
-          original.code.textContent = text;
-        }
+          let text = original.text;
+          for (const input of inputs) {
+            const defaultValue = input.dataset.default ?? '';
+            if (!defaultValue || input.value === defaultValue) continue;
+            text = text.split(defaultValue).join(input.value);
+          }
+          if (original.code.textContent !== text) original.code.textContent = text;
+        });
       };
 
       selects.forEach((select) => {
