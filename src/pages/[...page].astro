@@ -13,7 +13,7 @@ export const getStaticPaths = (async ({ paginate }) => {
 
 const { page } = Astro.props as { page: Page<CollectionEntry<'blog'>> };
 const pageTitle = page.currentPage === 1 ? undefined : `第 ${page.currentPage} 页`;
-const totalPosts = (await getPublishedPosts()).length;
+const totalPosts = page.total;
 ---
 
 <BaseLayout title={pageTitle}>

@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="404" description="页面不存在" searchable={false}>
+<BaseLayout title="404" description="页面不存在" searchable={false} noCanonical={true}>
   <div class="not-found">
     <p class="code">404</p>
     <h1>页面不存在</h1>
@@ -15,44 +15,44 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <a href="/">← 返回首页</a>
     </p>
   </div>
-</BaseLayout>
 
-<script>
-  // 旧链接兼容：/blog/xxx/ → /blog/xxx.html
-  const trailing = location.pathname.match(/^(\/blog\/[^/]+)\/$/);
-  if (trailing) location.replace(`${trailing[1]}.html`);
+  <script>
+    // 旧链接兼容：/blog/xxx/ → /blog/xxx.html
+    const trailing = location.pathname.match(/^(\/blog\/[^/]+)\/$/);
+    if (trailing) location.replace(`${trailing[1]}.html`);
 
-  interface PagefindResult {
-    data(): Promise<{ url: string }>;
-  }
+    interface PagefindResult {
+      data(): Promise<{ url: string }>;
+    }
 
-  interface PagefindModule {
-    search(query: string): Promise<{ results?: PagefindResult[] }>;
-  }
+    interface PagefindModule {
+      search(query: string): Promise<{ results?: PagefindResult[] }>;
+    }
 
-  const form = document.querySelector<HTMLFormElement>('#not-found-search');
-  const input = form?.querySelector<HTMLInputElement>('input');
-  const pagefindModulePath = '/pagefind/pagefind.js';
+    const form = document.querySelector<HTMLFormElement>('#not-found-search');
+    const input = form?.querySelector<HTMLInputElement>('input');
+    const pagefindModulePath = '/pagefind/pagefind.js';
 
-  if (form && input) {
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const query = input.value.trim();
-      if (!query) return;
+    if (form && input) {
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const query = input.value.trim();
+        if (!query) return;
 
-      try {
-        const pagefind = (await import(/* @vite-ignore */ pagefindModulePath)) as PagefindModule;
-        const search = await pagefind.search(query);
-        const first = search?.results?.[0];
-        if (first) {
-          const data = await first.data();
-          window.location.href = data.url;
-          return;
+        try {
+          const pagefind = (await import(/* @vite-ignore */ pagefindModulePath)) as PagefindModule;
+          const search = await pagefind.search(query);
+          const first = search?.results?.[0];
+          if (first) {
+            const data = await first.data();
+            window.location.href = data.url;
+            return;
+          }
+        } catch {
+          // 索引未构建：直接回首页
         }
-      } catch {
-        // 索引未构建：直接回首页
-      }
-      window.location.href = '/';
-    });
-  }
-</script>
+        window.location.href = '/';
+      });
+    }
+  </script>
+</BaseLayout>

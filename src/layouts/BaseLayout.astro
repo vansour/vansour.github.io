@@ -10,10 +10,11 @@ interface Props {
   title?: string;
   description?: string;
   searchable?: boolean;
+  noCanonical?: boolean;
 }
 
 const siteTitle = 'vansour blog';
-const { title = siteTitle, description, searchable = true } = Astro.props;
+const { title = siteTitle, description, searchable = true, noCanonical = false } = Astro.props;
 const pageTitle = title === siteTitle ? siteTitle : `${title} · ${siteTitle}`;
 const canonicalPath = Astro.url.pathname === '/index.html' ? '/' : Astro.url.pathname;
 const canonical = new URL(canonicalPath, Astro.site);
@@ -26,7 +27,7 @@ const canonical = new URL(canonicalPath, Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     {description && <meta name="description" content={description} />}
-    <link rel="canonical" href={canonical} />
+    {!noCanonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <!-- MiSans 字体（自托管，unicode-range 分片按需加载；字重映射 330/520/630） -->
