@@ -28,7 +28,7 @@ EOF
 Go 1.13+ 全局写入 `go env`（`go env -w` 本身即持久化，无需写 shell 配置）：
 
 ```code-tabs bash
-镜像: 七牛云=goproxy.cn | 腾讯云=goproxy.io | 阿里云=mirrors.aliyun.com/goproxy
+镜像: 七牛云=goproxy.cn | 社区源=goproxy.io
 ---
 go env -w GO111MODULE=on
 go env -w GOPROXY=https://{镜像},direct
@@ -40,12 +40,14 @@ nvm 安装脚本从 GitHub 下载，可用 gh-proxy.com 代理加速；Node 二�
 
 ```code-tabs bash
 安装源: 官方=raw.githubusercontent.com/nvm-sh/nvm | gh-proxy=gh-proxy.com/https://raw.githubusercontent.com/nvm-sh/nvm
-镜像: 阿里云=npmmirror.com/mirrors/node | 清华=mirrors.tuna.tsinghua.edu.cn/nodejs-release
+镜像: 淘宝=npmmirror.com/mirrors/node | 清华=mirrors.tuna.tsinghua.edu.cn/nodejs-release
 ---
-export NVM_NODEJS_ORG_MIRROR="https://{镜像}"
-curl -o- "https://{安装源}/v0.39.7/install.sh" | bash
+# 幂等写入 bashrc：先删旧行再加新值，重复运行/已配过其他镜像都不会堆积重复行
+sed -i '/^export NVM_NODEJS_ORG_MIRROR=/d' ~/.bashrc
 echo 'export NVM_NODEJS_ORG_MIRROR="https://{镜像}"' >> ~/.bashrc
-source ~/.bashrc
+export NVM_NODEJS_ORG_MIRROR="https://{镜像}"   # 当前会话立即生效，无需等 source
+curl -o- "https://{安装源}/v0.39.7/install.sh" | bash
+source ~/.bashrc   # 加载 bashrc 中的 nvm 初始化代码
 nvm install --lts
 ```
 
@@ -54,7 +56,7 @@ nvm install --lts
 `npm config set` 写入 `~/.npmrc`，本身即持久化：
 
 ```code-tabs bash
-镜像: 阿里云=registry.npmmirror.com | 腾讯云=mirrors.cloud.tencent.com/npm | 官方=registry.npmjs.org
+镜像: 淘宝=registry.npmmirror.com | 腾讯云=mirrors.cloud.tencent.com/npm | 官方=registry.npmjs.org
 ---
 npm config set registry https://{镜像}
 npm config get registry
@@ -77,11 +79,14 @@ pip config set global.index-url https://{镜像}
 ```code-tabs bash
 镜像: 字节跳动=rsproxy.cn | 清华=mirrors.tuna.tsinghua.edu.cn/rustup
 ---
-export RUSTUP_DIST_SERVER="https://{镜像}"
-export RUSTUP_UPDATE_ROOT="https://{镜像}/rustup"
-curl --proto '=https' --tlsv1.2 -sSf https://{镜像}/rustup-init.sh | sh
+# 幂等写入 bashrc：先删旧行再加新值，重复运行/已配过其他镜像都不会堆积重复行
+sed -i '/^export RUSTUP_DIST_SERVER=/d' ~/.bashrc
+sed -i '/^export RUSTUP_UPDATE_ROOT=/d' ~/.bashrc
 echo 'export RUSTUP_DIST_SERVER="https://{镜像}"' >> ~/.bashrc
 echo 'export RUSTUP_UPDATE_ROOT="https://{镜像}/rustup"' >> ~/.bashrc
+export RUSTUP_DIST_SERVER="https://{镜像}"   # 当前会话立即生效
+export RUSTUP_UPDATE_ROOT="https://{镜像}/rustup"
+curl --proto '=https' --tlsv1.2 -sSf https://{镜像}/rustup-init.sh | sh
 ```
 
 > 提示：镜像源地址与官方源不同步是正常现象；切换镜像后若出现校验失败，可先恢复官方源重试。
