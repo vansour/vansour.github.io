@@ -1,12 +1,16 @@
 ---
-title: nginx 安装与反代配置
-description: 官方源安装最新版 nginx，附开箱即用的反代配置模板，域名与端口可直接填写生成。
+title: nginx
+description: 官方源或国内镜像源安装最新版 nginx，附开箱即用的反代配置模板，域名与端口可直接填写生成。
 order: 2
 ---
 
 > 以下命令均需 **root** 权限执行。
 
+> 国内服务器可优先使用 163 / USTC 镜像源安装（选择对应 code-tabs 标签页）。
+
 ## 1. 安装
+
+**官方源**（默认）：
 
 ```code-tabs bash
 系统: Debian12=bookworm | Debian13=trixie
@@ -19,11 +23,27 @@ apt -y install nginx
 nginx -v
 ```
 
+**国内镜像源**（163 / USTC）：
+
+```code-tabs bash
+镜像: 网易=mirrors.163.com | USTC=mirrors.ustc.edu.cn
+系统: Debian12=bookworm | Debian13=trixie
+分支: 稳定版=debian | 主线版=mainline/debian
+---
+curl https://{镜像}/nginx/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null
+echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://{镜像}/nginx/packages/{分支} {系统} nginx" > /etc/apt/sources.list.d/nginx.list
+apt update
+apt -y install nginx
+nginx -v
+```
+
+> 镜像源的 `nginx_signing.key` 与官方一致（同一签名密钥）；若国内镜像不可用，可直接使用官方源。
+
 ## 2. 反代配置
 
 ```code-tabs nginx
+后端地址: 输入 127.0.0.1:8080
 域名: 输入 example.vansour.org
-端口: 输入 8080
 ---
 map $http_upgrade $connection_upgrade {
     default upgrade;
@@ -31,7 +51,7 @@ map $http_upgrade $connection_upgrade {
 }
 
 upstream example_backend {
-    server 127.0.0.1:{端口};
+    server {后端地址};
     keepalive 128;
     keepalive_requests 1000;
     keepalive_timeout 60s;

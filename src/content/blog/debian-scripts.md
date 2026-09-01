@@ -25,13 +25,7 @@ hostnamectl set-hostname localhost
 exec bash
 ```
 
-## 3. BBR
-
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/vansour/bbr/main/bbr.sh)
-```
-
-## 4. 重置软件源
+## 3. 重置软件源
 
 ```code-tabs bash
 版本: Debian12=bookworm | Debian13=trixie | Debian14=forky
@@ -69,10 +63,16 @@ EOF
 
 ⚠️ Debian 14 尚在 testing，仅 `forky` / `forky-security` 套件；`-updates` / `-backports` 报错时把 Suites 行精简为 `Suites: forky`。
 
-## 5. 更新与安装
+## 4. 更新与安装
 
 ```bash
 apt -y update
 apt -y full-upgrade
 apt -y install wget curl jq sudo vim ca-certificates cron unzip git gpg aria2 tmux
+```
+
+## 5. BBR
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/vansour/bbr/main/bbr.sh)
 ```
