@@ -4,8 +4,6 @@ description: Node.js、Rust、Docker、speedtest 的官方安装命令合集。
 order: 3
 ---
 
-> Docker 与 speedtest 的安装命令需 **root** 权限执行。
-
 ## 1. node.js（nvm）
 
 ```code-tabs bash
