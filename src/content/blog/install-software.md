@@ -41,7 +41,7 @@ EOF
 # 或仅当前会话：export RUSTFLAGS="-C link-arg=-fuse-ld=mold"
 ```
 
-### cargo-edit
+### cargo 工具安装
 
 ```bash
 cargo install cargo-edit

@@ -540,23 +540,27 @@ main {
 }
 
 .prose h2 {
-  margin: 40px 0 14px;
+  margin: 48px 0 16px;
   padding-bottom: 8px;
   font-size: 24px;
   line-height: 1.4;
   border-bottom: 1px solid var(--border-strong);
 }
 
+/* h3/h4 与 h2 拉开步差：一级大标题+分隔线，二级/三级明显更小 */
 .prose h3 {
   margin: 28px 0 10px;
-  font-size: 20px;
-  line-height: 1.4;
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: 600;
 }
 
 .prose h4 {
-  margin: 20px 0 8px;
-  font-size: 18px;
-  line-height: 1.4;
+  margin: 24px 0 8px;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--fg);
 }
 
 .prose p {
