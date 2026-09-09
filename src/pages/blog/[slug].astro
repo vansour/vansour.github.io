@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Toc from '../../components/Toc.astro';
 import { getPublishedPosts } from '../../lib/posts';
 import { render } from 'astro:content';
 
@@ -14,13 +15,19 @@ const { data } = post;
 ---
 
 <BaseLayout title={data.title} description={data.description}>
-  <article>
-    <header class="article-header">
-      <h1>{data.title}</h1>
-    </header>
+  <!-- 双栏：左侧目录（桌面 sticky / 窄屏折叠顶栏），右侧文章 -->
+  <div class="article-layout">
+    <Toc />
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <h1>{data.title}</h1>
+        </header>
 
-    <div class="prose">
-      <Content />
+        <div class="prose">
+          <Content />
+        </div>
+      </article>
     </div>
-  </article>
+  </div>
 </BaseLayout>

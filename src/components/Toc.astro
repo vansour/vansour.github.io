@@ -1,0 +1,98 @@
+---
+// 文章目录（TOC）：运行时从正文收集 h2/h3，生成锚点大纲。
+// 桌面（≥1240px）左侧 sticky 常驻、滚动高亮当前章节；窄屏折叠成文章顶部面板。
+// 构建期不渲染任何条目，无 JS / 无标题时对布局与正文零影响。
+---
+
+<aside class="toc" id="toc" data-pagefind-ignore>
+  <span class="toc-label">目录</span>
+  <button type="button" class="toc-toggle" aria-expanded="false" aria-controls="toc-nav">
+    <span>目录</span>
+    <svg
+      class="toc-chevron"
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    ><path d="m6 9 6 6 6-6"></path></svg>
+  </button>
+  <nav id="toc-nav" class="toc-nav" aria-label="文章目录">
+    <ul class="toc-list"></ul>
+  </nav>
+</aside>
+
+<script>
+  const prose = document.querySelector('.prose');
+  const toc = document.getElementById('toc');
+  const toggle = document.querySelector<HTMLButtonElement>('.toc-toggle');
+  const nav = document.getElementById('toc-nav');
+  const listEl = nav?.querySelector<HTMLUListElement>('.toc-list');
+
+  if (prose && toc && nav && listEl) {
+    // 只收集正文区 h2/h3（标题层级：h2 一级 / h3 二级缩进）
+    const headings = [...prose.querySelectorAll<HTMLElement>('h2, h3')];
+
+    if (!headings.length) {
+      toc.hidden = true;
+    } else {
+      const links: HTMLAnchorElement[] = [];
+      headings.forEach((heading, i) => {
+        heading.id = `toc-head-${i}`;
+        const li = document.createElement('li');
+        li.className = heading.tagName === 'H3' ? 'toc-h3' : 'toc-h2';
+        const a = document.createElement('a');
+        a.href = `#toc-head-${i}`;
+        // 标题文本走文本节点，无 HTML 注入
+        a.textContent = heading.textContent ?? '';
+        li.append(a);
+        listEl.append(li);
+        links.push(a);
+      });
+
+      // 折叠开关（仅窄屏可见；宽屏 CSS 强制展开）
+      toggle?.addEventListener('click', () => {
+        const open = toc.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', String(open));
+      });
+
+      // 点击条目后收起折叠面板（窄屏），并让浏览器平滑滚动到锚点
+      listEl.addEventListener('click', (event) => {
+        if (event.target instanceof HTMLAnchorElement) {
+          toc.classList.remove('open');
+          toggle?.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // 滚动高亮：视口上方最近一个已越过的标题为当前章节
+      function updateActive() {
+        const marker = window.scrollY + 120;
+        let current = -1;
+        headings.forEach((heading, i) => {
+          if (heading.getBoundingClientRect().top + window.scrollY <= marker) current = i;
+        });
+        // 滚到底部时选中最后一个章节
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+          current = headings.length - 1;
+        }
+        links.forEach((link, i) => link.classList.toggle('active', i === current));
+      }
+
+      let ticking = false;
+      const onScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          updateActive();
+          ticking = false;
+        });
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      updateActive();
+    }
+  }
+</script>
