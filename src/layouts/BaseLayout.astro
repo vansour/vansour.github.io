@@ -30,10 +30,7 @@ const canonical = new URL(canonicalPath, Astro.site);
     {!noCanonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <!-- MiSans 字体（自托管，unicode-range 分片按需加载；字重映射 330/520/630） -->
-    <link rel="stylesheet" href="/fonts/misans/MiSans-Regular.min.css" />
-    <link rel="stylesheet" href="/fonts/misans/MiSans-Semibold.min.css" />
-    <link rel="stylesheet" href="/fonts/misans/MiSans-Bold.min.css" />
+    <!-- 字体使用系统宋体系（SimSun / Songti SC / Noto Serif CJK SC），无需自托管 -->
     <link rel="alternate" type="application/rss+xml" title={siteTitle} href="/rss.xml" />
     <meta name="generator" content={Astro.generator} />
     <script is:inline>
