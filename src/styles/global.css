@@ -23,9 +23,11 @@
   --max-width: clamp(600px, 92vw, 1280px);
   /* 正文/列表可读行长（≈816px），宽屏下内容列在容器内居中 */
   --measure: 48em;
-  /* 全站宋体系：Windows SimSun / macOS Songti SC / Linux 思源宋体，避免引入自托管字体 */
+  /* 代码区固定系统宋体系（Windows SimSun / macOS Songti SC / Linux 思源宋体） */
   --font-songti: "SimSun", "宋体", "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", serif;
-  --font-body: var(--font-songti);
+  /* 正文/标题：自托管 MiSans（Regular 400 / Bold 700，真实粗体），兜底系统无衬线 */
+  --font-body: "MiSans", system-ui, -apple-system, "PingFang SC", "Noto Sans SC",
+    "Microsoft YaHei", sans-serif;
   --font-code: var(--font-songti);
 }
 
@@ -117,7 +119,7 @@ body {
   color: var(--fg);
   font-family: var(--font-body);
   font-size: 17px;
-  /* 宋体衬线行距放宽，保证长文阅读舒适 */
+  /* 行距放宽，保证长文阅读舒适 */
   line-height: 1.7;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
@@ -532,7 +534,7 @@ main {
   letter-spacing: -0.005em;
 }
 
-/* 正文：宋体衬线行距放宽 + 可读行宽限宽；宽容器下整块水平居中 */
+/* 正文：行距放宽 + 可读行宽限宽；宽容器下整块水平居中 */
 .prose {
   max-width: var(--measure);
   margin: 0 auto 40px;
@@ -547,19 +549,19 @@ main {
   border-bottom: 1px solid var(--border-strong);
 }
 
-/* h3/h4 与 h2 拉开步差：一级大标题+分隔线，二级/三级明显更小 */
+/* h3/h4 与 h2 拉开步差：h2 真粗 24px + 分隔线，h3/h4 用常规字重（500 映射 Regular 面） */
 .prose h3 {
   margin: 28px 0 10px;
   font-size: 18px;
   line-height: 1.5;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .prose h4 {
   margin: 24px 0 8px;
   font-size: 16px;
   line-height: 1.5;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--fg);
 }
 
