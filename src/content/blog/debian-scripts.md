@@ -30,31 +30,30 @@ exec bash
 ```code-tabs bash
 版本: Debian12=bookworm | Debian13=trixie | Debian14=forky
 协议: http | https
-镜像: 官方=deb.debian.org | XTOM=mirrors.xtom.com | TUNA=mirrors.tuna.tsinghua.edu.cn
 ---
 rm -rf /etc/apt/mirrors/
 > /etc/apt/sources.list
 cat > /etc/apt/sources.list.d/debian.sources <<'EOF'
 Types: deb
-URIs: {协议}://{镜像}/debian
+URIs: {协议}://deb.debian.org/debian
 Suites: {版本} {版本}-updates {版本}-backports
 Components: main contrib non-free non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 Types: deb-src
-URIs: {协议}://{镜像}/debian
+URIs: {协议}://deb.debian.org/debian
 Suites: {版本} {版本}-updates {版本}-backports
 Components: main contrib non-free non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 Types: deb
-URIs: {协议}://{镜像}/debian-security
+URIs: {协议}://deb.debian.org/debian-security
 Suites: {版本}-security
 Components: main contrib non-free non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 Types: deb-src
-URIs: {协议}://{镜像}/debian-security
+URIs: {协议}://deb.debian.org/debian-security
 Suites: {版本}-security
 Components: main contrib non-free non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
