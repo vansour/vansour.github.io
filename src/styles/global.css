@@ -25,9 +25,10 @@
   --measure: 48em;
   /* 代码区固定系统宋体系（Windows SimSun / macOS Songti SC / Linux 思源宋体） */
   --font-songti: "SimSun", "宋体", "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", serif;
-  /* 正文/标题：自托管 MiSans（Regular 400 / Bold 700，真实粗体），兜底系统无衬线 */
-  --font-body: "MiSans", system-ui, -apple-system, "PingFang SC", "Noto Sans SC",
-    "Microsoft YaHei", sans-serif;
+  /* 正文/标题：自托管思源宋体 Noto Serif SC（Regular 400 / Bold 700，真实粗体），
+     加载/降级时回退系统宋体系 */
+  --font-body: "Noto Serif SC", "SimSun", "宋体", "Songti SC", "Noto Serif CJK SC",
+    "Source Han Serif SC", serif;
   --font-code: var(--font-songti);
 }
 

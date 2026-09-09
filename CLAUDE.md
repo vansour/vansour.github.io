@@ -34,7 +34,7 @@ npm run preview        # 预览 dist 构建产物
 - 排版基线（2026-09-09 精修）：宋体系下 body 行高 1.7、`.prose` 1.75；hover 不做位移/阴影，卡片 hover 用边框与 3% accent 底色；主题色/边框过渡统一收口在 `global.css` 末尾（过渡区 + `prefers-reduced-motion` 区），新增过渡不散落到组件规则里。
 - 站内搜索：Pagefind 懒加载（构建时生成索引，`import('/pagefind/pagefind.js')`），`data-pagefind-body` 只索引正文区域；导航、页脚、404 页不得成为搜索结果。
 - 组件职责边界：BaseLayout（骨架/head/防闪烁）、Header（导航/搜索/主题入口/移动菜单）、SearchDialog（Pagefind 弹窗）、ThemeToggle（theme/accent 读写）、CopyCodeButton（普通代码块复制，不处理 `.code-tabs` 变体）、CodeTabs（多变体交互）、Toc（文章目录：运行时收集 `.prose` h2/h3 生成锚点 id `toc-head-N`，桌面 ≥1240px 左侧 sticky、窄屏折叠顶栏，滚动高亮；构建期零输出、无 JS 不影响正文）、PostCard（纯展示）。不要把业务逻辑散落到页面。正文 h2/h3/h4 保留 `scroll-margin-top` 供锚点跳转定位。
-- 字体：正文/标题自托管 MiSans（unicode-range 分片，`MiSans-Regular.min.css` @400、`MiSans-Bold.min.css` @700，真实粗体保证 Windows 标题层级；勿随意删除文件），代码区固定系统宋体系（`--font-songti`：`SimSun`/`宋体`/`Songti SC`/`Noto Serif CJK SC`），正文 h3/h4 用常规字重（500，映射 Regular 面）与 h2 拉开层级；`public/CNAME`、`robots.txt`、图标属发布契约，不得随意移除或改名。
+- 字体：正文/标题自托管思源宋体 `Noto Serif SC`（`public/fonts/sourcehan/sourcehan.css` + `files/`，@400/@700 各一简体全量 woff2 约 1.5MB，真实粗体保证 Windows 标题层级；勿随意删除文件），代码区固定系统宋体系（`--font-songti`：`SimSun`/`宋体`/`Songti SC`/`Noto Serif CJK SC`），正文 h3/h4 用常规字重（500，映射 Regular 面）与 h2 拉开层级；`public/CNAME`、`robots.txt`、图标属发布契约，不得随意移除或改名。
 
 ## 文章写作
 
