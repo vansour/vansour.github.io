@@ -16,7 +16,7 @@
   ],
   "mirrors": [
     {
-      "station": "清华 TUNA",
+      "station": "清华大学开源软件镜像站",
       "vars": {
         "url": "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
       },

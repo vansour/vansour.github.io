@@ -13,7 +13,10 @@ export const getStaticPaths = (() =>
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 const { doc } = Astro.props;
 
-const slugs = makeSlugs(doc.mirrors.map((m) => m.station));
+// slug 由「站名 + 主地址」派生：站名全中文时退回域名标签。主地址各版本相同，取第一项即可
+const slugs = makeSlugs(
+  doc.mirrors.map((m) => ({ name: m.station, endpoint: m.perVersion[0]?.endpoint ?? '' })),
+);
 // 页级汇总的核实日期取该工具最新的一条
 const verified = doc.mirrors.map((m) => m.verified_at).sort().at(-1) ?? '';
 

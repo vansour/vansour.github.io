@@ -100,7 +100,10 @@ src/data/mirrors/*.json    【内容都在这里】一个工具一个文件
 （`/mirrors/${doc.id}/`），少写一个斜杠会被 GitHub Pages 301 一次。
 
 切换写进地址栏的是 `#<版本key>/<源slug>`（无版本的工具退回 `#<源slug>`），可深链。
-slug 由 `makeSlugs()` 从站名派生（取 ASCII 部分，无则退回序号），**不往数据里加字段**。
+slug 由 `makeSlugs()` 派生，三级回退：**站名的 ASCII 部分 → 主地址的域名标签
+（`mirrors.tuna.tsinghua.edu.cn` → `tuna`）→ 序号**。第二级是必需的：站名用中文正式全称之后
+一个 ASCII 都不剩，只靠第一级会让深链退化成 `#13/s2`。域名稳定，所以展示名随便改，
+深链都不动。**不往数据里加字段**。
 面板靠 `data-version` / `data-slug` 定位，没有 id，也不从别的属性反推——slug 本身含连字符，
 拼不出可靠的结构。认不出的 hash（比如指到已删除的源）回退到**页面默认值**，
 而不是下拉里的第一项：来源下拉是按 region 分组的，第一项是官方源，
@@ -153,7 +156,14 @@ npm run check    # astro check，类型检查（deploy.yml 里排在 build 之�
 7. **收录范围只有两类：官方源与国内公共镜像站**。国外镜像站一律不收
    （`region` 缺省就是 `cn`，官方源写 `official`）。本站叫「国内镜像源」，
    混进 RIKEN、KAIST、OVH 这类源只会让下拉变长，也让这个定位失焦。
-8. **新增版本必须逐源核实**。套件名提成 `{suite}` 之后，加一个版本只是几行 JSON，
+   **站名写镜像站自己的正式名称**（「清华大学开源软件镜像站」），不用简称——
+   它既是下拉里的展示名，也是深链 slug 的来源。
+8. **apt 源一律明文 `http://`，并且必须实测它在明文下不跳转**。apt 的完整性靠 GPG 验签
+   （`Signed-By`），安全性不依赖传输层，明文还省掉 TLS 开销。但明文下会 301/302/308
+   跳 **https** 的源不收（腾讯云、上海交大 SJTUG），跳**别的站**的也不收
+   （教育网联合 → 实测跳清华 / 吉林大学）：命令里写的地址与真正取数据的地址必须是同一个。
+   **pip 等语言生态工具相反，必须 https**——pip 不验包签名，传输层是它唯一的防线。
+9. **新增版本必须逐源核实**。套件名提成 `{suite}` 之后，加一个版本只是几行 JSON，
    但每个源都得确认它**确实还有**这个发行版的数据——占位符能替换，不代表那个套件在源上存在。
    `verified_at` 是源级的：一个源同时供两个版本，就要两个版本都查到才算核实。
    核实方法见「已核实的事实」最后一条。
@@ -198,12 +208,16 @@ npm run check    # astro check，类型检查（deploy.yml 里排在 build 之�
   `/etc/apt/sources.list.d/debian.sources`，主归档套件是 `<suite>` / `<suite>-updates` /
   `<suite>-backports`，安全更新走独立 URI 加 `<suite>-security` 套件。
   两个版本的 `Components:` 行一样，都是 `main contrib non-free non-free-firmware`。
-- **收录的 10 个源在两个版本上都有数据**（2026-09-23 实测）：bookworm 的三个主归档套件
-  与 `bookworm-security`、`trixie` 与 `trixie-security` 全部命中。核实方法是取 Release 文件
+- **收录的 7 个源在明文 http 下、两个版本都有数据**（2026-09-23 实测）：bookworm 的三个
+  主归档套件与 `bookworm-security`、`trixie` 与 `trixie-security` 全部 200；
+  Ubuntu 侧 `resolute` 与 `resolute-security` 同样。核实方法是取 Release 文件
   `curl -o /dev/null -w '%{http_code}' <源>/dists/<套件>/Release`，安全更新换成
-  `-security` 那个 URI 再测一次（这是最容易漏的一步）。**SJTUG 与教育网联合对所有 URL
-  返回 302**：前者跳 `mirror.sjtu.edu.cn`，后者跳成员站（实测 `mirrors.hit.edu.cn`、
-  `mirrors.jlu.edu.cn`），加 `-L` 能拿到 200 与完整 Release，apt 会自己跟随，不是故障。
+  `-security` 那个 URI 再测一次（这是最容易漏的一步）。**要测的是归档路径，不是首页**：
+  这些站的网页在明文下会 301 跳 https，但 apt 真正取的 `dists/` 路径是明文直出的，
+  两者行为不同，拿首页的结果下结论会得出「全都不支持 http」的错误答案。
+- 明文下会跳转的三个源已移除，不要再加回来：腾讯云（302 → https）、上海交大 SJTUG
+  （308 → https）、教育网联合（302 → 成员站，实测清华 / 吉林大学）。它们加 `-L`
+  都能拿到 200，但「命令里写的地址」与「真正取数据的地址」不是同一个，按第 8 条不收。
 - **新增任何源都要分别实测主归档与安全更新两个 URI**——当初核实时就发现 JAIST、
   kernel.org、Princeton 的 `/debian-security/` 是 404（2026-09-23，连目录列表也 404）。
   只测一个就把 URI 照搬过去，会让 `apt update` 直接报错。
