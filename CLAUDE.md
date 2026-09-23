@@ -73,17 +73,35 @@ GitHub Pages 用户站点，Astro 静态站。最终地址 <https://vansour.gith
 ### 结构
 
 ```
-astro.config.mjs       site / build 配置，换域名只改这里
-src/pages/index.astro  导航首页，新增板块在 links 数组里加一项
-src/pages/mirrors.astro 国内镜像源页
-src/components/ToolBlock.astro  单个工具的渲染
-src/layouts/Base.astro 全站布局 + 复制按钮的事件委托脚本
-src/styles/global.css  全站样式，含 prefers-color-scheme 暗色
-src/data/schema.ts     数据结构的 zod 定义与中文标签
-src/data/resolve.ts    模板占位符替换 + 报错格式化（纯函数）
-src/data/index.ts      读取、检查、聚合 mirrors/ 下所有 JSON
-src/data/mirrors/*.json 【内容都在这里】一个工具一个文件
+astro.config.mjs           site / build 配置，换域名只改这里
+src/pages/index.astro      导航首页，新增板块在 links 数组里加一项
+src/pages/mirrors/index.astro  索引页：按分类的工具卡片网格
+src/pages/mirrors/[id].astro   【每工具一页】chip 切换 + 各源的面板
+src/layouts/Base.astro     全站布局 + 复制/切换脚本 + toast
+src/components/CodeBlock.astro  单个命令变体（lang + label + pre + 复制）
+src/components/SourcePanel.astro 一个镜像源的面板
+src/components/ToolCard.astro / SiblingGrid.astro  卡片与「其他工具」
+src/lib/slug.ts            由站名派生锚点 slug（渲染期推导，不入数据）
+src/styles/global.css      全站样式，含 prefers-color-scheme 暗色
+src/data/schema.ts         数据结构的 zod 定义与中文标签
+src/data/resolve.ts        模板占位符替换 + 报错格式化（纯函数）
+src/data/index.ts          读取、检查、聚合 mirrors/ 下所有 JSON
+src/data/mirrors/*.json    【内容都在这里】一个工具一个文件
 ```
+
+### 路由
+
+每工具一个页面的 URL 是 `/mirrors/<id>/`，索引页是 `/mirrors/`。
+**`src/pages/mirrors.astro` 不能存在**——它会和 `mirrors/index.astro` 抢同一个输出文件
+`dist/mirrors/index.html`，Astro 会在构建时报路由冲突。
+
+`build.format` 是 `directory`，配合默认的 `trailingSlash: 'ignore'`，构建期
+`Astro.url.pathname` 自带尾斜杠。所以**内链一律写成带尾斜杠的绝对路径**
+（`/mirrors/${doc.id}/`），少写一个斜杠会被 GitHub Pages 301 一次。
+
+切换 chip 写的是 `#<slug>`，可深链、可后退。slug 由 `makeSlugs()` 从站名派生
+（取 ASCII 部分，无则退回序号），**不往数据里加字段**。注意 slug 本身可能含连字符，
+所以脚本用 `data-slug` 取，不从 `aria-controls` 的 id 反推。
 
 ### 常用命令
 
@@ -236,6 +254,9 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
 2. **命令块竖排时 `align-items` 必须改回 `stretch`**。若保持 `flex-start`，
    交叉轴（水平）上 `pre` 会撑到内容宽而非容器宽，再被 `.cmd` 的 `overflow: hidden`
    裁掉，长行直接读不到，且内部滚动条也够不着。
+3. **`<noscript>` 里的 `<style>` 必须加 `is:inline`**。否则 Astro 会把它当组件样式处理，
+   并把标签内容原样吐成字面量（实测产物里出现过 `{'.panel[hidden]...'}`），
+   规则完全不生效——无 JS 降级会静默失效。
 
 ### 命令块的硬约束
 
@@ -262,3 +283,15 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
   说明也会看起来像警告，整页显得一惊一乍
 - 不加载网络字体（中文字体体积违背「轻量」）。Latin 走系统 UI 字体，中文按平台回退
 - 动效只用在与用户操作对应的反馈上（悬停、复制成功），不做进场动画
+
+### 交互约定
+
+- **复制成功与失败必须分开提示**。剪贴板不可用时退回隐藏 `textarea` +
+  `execCommand`，且**要检查它的布尔返回值**——参考站就是没查，
+  导致两条路径都提示「已复制」。本站在 toast 上用 `data-kind="err"` 区分
+- toast 带 `role="status"` 与 `aria-live="polite"`，屏幕阅读器能听到
+- 来源切换遵守 tab 控件契约：`role="tablist"` / `role="tab"` + `aria-selected` +
+  `role="tabpanel"` + `aria-controls`，方向键与 Home/End 可切换（roving tabindex）。
+  参考站缺了 tabpanel 角色与方向键，不要跟着省
+- **无 JS 时全部面板可见**：SSR 只给非首项加 `hidden`（避免刷新时闪一下），
+  再由 `<noscript>` 里的 `is:inline` 样式放开。改动面板渲染时别破坏这条

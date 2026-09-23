@@ -1,0 +1,82 @@
+---
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+import Base from '../../layouts/Base.astro';
+import SourcePanel from '../../components/SourcePanel.astro';
+import SiblingGrid from '../../components/SiblingGrid.astro';
+import { docs } from '../../data/index';
+import { makeSlugs } from '../../lib/slug';
+
+// 静态构建：每个工具一个页面。/mirrors/index/ 由索引页占用，schema 已禁止 id 取 index。
+export const getStaticPaths = (() =>
+  docs.map((doc) => ({ params: { id: doc.id }, props: { doc } }))) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { doc } = Astro.props;
+
+const slugs = makeSlugs(doc.mirrors.map((m) => m.station));
+// 页级汇总的核实日期取该工具最新的一条
+const verified = doc.mirrors.map((m) => m.verified_at).sort().at(-1) ?? '';
+---
+
+<Base title={`${doc.name} 国内镜像源 · vansour`} description={doc.tagline}>
+  {/* 无 JS 时把被 hidden 的非当前面板全部放开，保证每个源都可达。
+      必须加 is:inline——否则 Astro 会把 <style> 当组件样式处理，
+      并把里面的内容原样吐成字面量，规则根本不生效 */}
+  <noscript>
+    <style is:inline>.panel[hidden]{display:block !important}.chips{display:none}</style>
+  </noscript>
+
+  <nav class="crumbs" aria-label="面包屑">
+    <a href="/mirrors/">🪞 国内镜像源</a>
+    <span class="crumbs__sep" aria-hidden="true">/</span>
+    <span>{doc.id}</span>
+    <span class="crumbs__sep" aria-hidden="true">·</span>
+    <span>{doc.tagline}</span>
+  </nav>
+
+  <h1 class="tool-title">
+    <span class="tool-title__icon" aria-hidden="true">{doc.icon}</span>{doc.name}
+  </h1>
+  <p class="lede">修改 <code>{doc.modified_file}</code></p>
+
+  {doc.note && <p class="tool__note">{doc.note}</p>}
+
+  <section class="sources">
+    <div class="sources__head">
+      <h2 class="sources__title">选择来源</h2>
+      <span class="sources__count">{doc.mirrors.length} 个可用</span>
+    </div>
+
+    <div class="chips" role="tablist" aria-label="镜像来源">
+      {
+        doc.mirrors.map((mirror, i) => (
+          <button
+            type="button"
+            role="tab"
+            class="chip"
+            id={`tab-${doc.id}-${slugs[i]}`}
+            aria-controls={`panel-${doc.id}-${slugs[i]}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            tabindex={i === 0 ? 0 : -1}
+            data-tab
+            data-slug={slugs[i]}
+          >
+            {mirror.station}
+          </button>
+        ))
+      }
+    </div>
+
+    {
+      doc.mirrors.map((mirror, i) => (
+        <SourcePanel docId={doc.id} mirror={mirror} slug={slugs[i]} active={i === 0} />
+      ))
+    }
+  </section>
+
+  <p class="stamp">
+    本页数据核实于 <time datetime={verified}>{verified}</time>，共 {doc.mirrors.length} 个源
+  </p>
+
+  <SiblingGrid docs={docs} currentId={doc.id} />
+</Base>

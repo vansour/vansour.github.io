@@ -1,0 +1,18 @@
+---
+import type { MirrorDoc } from '../data/schema';
+
+interface Props {
+  doc: MirrorDoc;
+}
+
+const { doc } = Astro.props;
+---
+
+<a class="tool-card" href={`/mirrors/${doc.id}/`}>
+  <span class="tool-card__icon" aria-hidden="true">{doc.icon}</span>
+  <span class="tool-card__text">
+    <span class="tool-card__name">{doc.name}</span>
+    <span class="tool-card__tagline">{doc.tagline}</span>
+  </span>
+  <span class="tool-card__count">{doc.mirrors.length}</span>
+</a>

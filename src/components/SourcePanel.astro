@@ -1,0 +1,58 @@
+---
+import CodeBlock from './CodeBlock.astro';
+import type { MirrorEntry } from '../data/schema';
+import { STATUS_LABEL } from '../data/schema';
+
+interface Props {
+  docId: string;
+  mirror: MirrorEntry;
+  slug: string;
+  active: boolean;
+}
+
+const { docId, mirror, slug, active } = Astro.props;
+
+const tabId = `tab-${docId}-${slug}`;
+const panelId = `panel-${docId}-${slug}`;
+
+// 镜像首页由主地址的 origin 推导，不单独存字段
+const homepage = new URL(mirror.endpoint).origin;
+---
+
+<div
+  class:list={['panel', `panel--${mirror.status}`]}
+  id={panelId}
+  role="tabpanel"
+  aria-labelledby={tabId}
+  tabindex="0"
+  hidden={!active}
+>
+  <p class="panel__meta">
+    <span class={`dot dot--${mirror.status}`} aria-hidden="true"></span>
+    <span class={`status status--${mirror.status}`}>
+      {STATUS_LABEL[mirror.status]}
+    </span>
+    {
+      mirror.doc && (
+        <>
+          <span class="panel__sep" aria-hidden="true">·</span>
+          <a href={mirror.doc} target="_blank" rel="noopener noreferrer">
+            官方说明 ↗
+          </a>
+        </>
+      )
+    }
+    <span class="panel__sep" aria-hidden="true">·</span>
+    <a href={homepage} target="_blank" rel="noopener noreferrer">镜像首页 ↗</a>
+    <span class="panel__sep" aria-hidden="true">·</span>
+    <span class="panel__addr">{mirror.endpoint}</span>
+  </p>
+
+  {mirror.note && <p class="note">{mirror.note}</p>}
+
+  {
+    mirror.variants.map((v) => (
+      <CodeBlock id={`${docId}-${slug}-${v.key}`} variant={v} />
+    ))
+  }
+</div>

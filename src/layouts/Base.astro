@@ -13,8 +13,14 @@ const nav = [
   { href: '/', label: '首页' },
   { href: '/mirrors/', label: '国内镜像源' },
 ];
-const isCurrent = (href: string) =>
-  href === '/' ? path === '/' : path.startsWith(href);
+
+// 分段安全：只匹配该段本身或其子路径。
+// 单纯 startsWith 会让 /mirrors-old/ 被误判为「国内镜像源」当前页。
+const isCurrent = (href: string) => {
+  if (href === '/') return path === '/';
+  const prefix = href.endsWith('/') ? href : `${href}/`;
+  return path === href || path.startsWith(prefix);
+};
 ---
 
 <!doctype html>
@@ -24,6 +30,7 @@ const isCurrent = (href: string) =>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
   </head>
   <body>
     <header class="band">
@@ -49,8 +56,46 @@ const isCurrent = (href: string) =>
       数据均标注核实日期。镜像站状态会变，动手前请以镜像站官方文档为准。
     </footer>
 
+    {/* 复制成功与失败都经此提示。aria-live 让屏幕阅读器也能听到 */}
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
     <script>
-      // 复制按钮：统一走事件委托，新增内容无需重新绑定
+      /* ---------------------------------------------------------------- *
+       * 复制
+       * ---------------------------------------------------------------- */
+
+      // 同步兜底：Clipboard API 不可用时用隐藏 textarea + execCommand。
+      // 注意 execCommand 有布尔返回值，不能假定它成功——参考站就是没查，
+      // 导致成功与失败都提示「已复制」。
+      function copyViaTextarea(text: string): boolean {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        let ok = false;
+        try {
+          ok = document.execCommand('copy');
+        } catch {
+          ok = false;
+        }
+        document.body.removeChild(ta);
+        return ok;
+      }
+
+      let toastTimer: number | undefined;
+
+      function toast(message: string, kind: 'ok' | 'err'): void {
+        const el = document.getElementById('toast');
+        if (!el) return;
+        el.textContent = message;
+        el.dataset.kind = kind;
+        el.classList.add('show');
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => el.classList.remove('show'), 1800);
+      }
+
       document.addEventListener('click', async (event) => {
         const button = (event.target as Element | null)?.closest<HTMLButtonElement>(
           '[data-copy-target]',
@@ -61,28 +106,89 @@ const isCurrent = (href: string) =>
         if (!target) return;
 
         const text = target.textContent ?? '';
-        const label = button.textContent ?? '复制';
+        let ok = false;
 
-        try {
-          await navigator.clipboard.writeText(text);
-          button.textContent = '已复制';
-          button.dataset.state = 'done';
-        } catch {
-          // 非安全上下文下 Clipboard API 不可用，退回选中文本让用户手动复制
-          const range = document.createRange();
-          range.selectNodeContents(target);
-          const selection = window.getSelection();
-          selection?.removeAllRanges();
-          selection?.addRange(range);
-          button.textContent = '已选中';
-          button.dataset.state = 'done';
+        if (navigator.clipboard?.writeText) {
+          try {
+            await navigator.clipboard.writeText(text);
+            ok = true;
+          } catch {
+            ok = copyViaTextarea(text);
+          }
+        } else {
+          ok = copyViaTextarea(text);
         }
 
-        window.setTimeout(() => {
-          button.textContent = label;
-          delete button.dataset.state;
-        }, 1800);
+        toast(ok ? '已复制' : '复制失败，请手动选中命令', ok ? 'ok' : 'err');
       });
+
+      /* ---------------------------------------------------------------- *
+       * 来源切换（chip + panel）
+       * 无 JS 时靠页面里的 <noscript> 放开全部面板，此处只在有 chip 时启用
+       * ---------------------------------------------------------------- */
+
+      const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-tab]'));
+
+      if (tabs.length > 0) {
+        const tablist = tabs[0].closest('[role="tablist"]');
+        // aria-controls 的值是 panel-<docId>-<slug>，slug 本身可能含连字符，
+        // 所以用 data-slug 取，不从 id 反推
+        const panels = tabs.map((t) =>
+          document.getElementById(
+            `panel-${t.id.replace(/^tab-/, '')}`,
+          ),
+        );
+
+        const activate = (index: number, focus = false): void => {
+          tabs.forEach((tab, i) => {
+            const on = i === index;
+            tab.classList.toggle('chip--active', on);
+            tab.setAttribute('aria-selected', on ? 'true' : 'false');
+            tab.tabIndex = on ? 0 : -1;
+            const panel = panels[i];
+            if (panel) panel.hidden = !on;
+          });
+          if (focus) tabs[index]?.focus();
+        };
+
+        const indexFromHash = (): number => {
+          const hash = decodeURIComponent(location.hash.slice(1));
+          if (!hash) return 0;
+          const i = tabs.findIndex((t) => t.dataset.slug === hash);
+          return i === -1 ? 0 : i; // 不认识的 hash 回退到第一个源
+        };
+
+        const select = (index: number): void => {
+          activate(index);
+          const slug = tabs[index]?.dataset.slug;
+          if (slug) history.replaceState(null, '', `#${slug}`);
+        };
+
+        tabs.forEach((tab, i) => {
+          tab.addEventListener('click', () => select(i));
+        });
+
+        // 方向键 / Home / End 切换，符合 tab 控件的键盘约定
+        tablist?.addEventListener('keydown', (event) => {
+          const key = (event as KeyboardEvent).key;
+          const from = indexFromHash();
+          let next: number | null = null;
+
+          if (key === 'ArrowRight') next = (from + 1) % tabs.length;
+          else if (key === 'ArrowLeft') next = (from - 1 + tabs.length) % tabs.length;
+          else if (key === 'Home') next = 0;
+          else if (key === 'End') next = tabs.length - 1;
+
+          if (next !== null) {
+            event.preventDefault();
+            select(next);
+            tabs[next]?.focus();
+          }
+        });
+
+        window.addEventListener('hashchange', () => activate(indexFromHash()));
+        activate(indexFromHash());
+      }
     </script>
   </body>
 </html>

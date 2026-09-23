@@ -1,0 +1,36 @@
+---
+import type { ResolvedVariant } from '../data/schema';
+
+interface Props {
+  id: string;
+  variant: ResolvedVariant;
+}
+
+const { id, variant } = Astro.props;
+
+// 超过这个行数就限高、允许内部滚动。长配置（如 Debian 的 deb822）若不设上限，
+// 会把页面撑到无法浏览。复制取的是 textContent，不受滚动影响，仍是全文。
+const TALL_LINES = 14;
+const lines = variant.code.split('\n').length;
+---
+
+<div class="variant">
+  <p class="variant__head">
+    <span class="variant__lang">{variant.lang}</span>
+    <span class="variant__label">{variant.label}</span>
+  </p>
+
+  {variant.note && <p class="note">{variant.note}</p>}
+
+  {/* pre 与 code 之间不能有换行，否则复制出的文本会带多余空白。
+      装饰（色条、标签、按钮）都在 pre 外面，不会被一起复制走。 */}
+  <div class="cmd">
+    <pre
+      id={id}
+      class:list={[
+        variant.code.includes('\n') ? 'pre--block' : '',
+        lines > TALL_LINES ? 'pre--tall' : '',
+      ]}><code>{variant.code}</code></pre>
+    <button type="button" class="cmd__copy" data-copy-target={id}>复制</button>
+  </div>
+</div>

@@ -20,9 +20,14 @@
   --warn: #8f5d0b; /* 有限制 */
   --warn-dot: #c8922e;
   --dead: #4e7186; /* 已停用 */
+  --danger: #b3261e; /* 复制失败 */
 
-  --r: 10px;
+  /* 圆角向参考站靠拢：卡片 16px，按钮 6px，chip 与 toast 胶囊 */
+  --r: 16px;
   --r-sm: 6px;
+
+  --shadow: 0 1px 3px rgba(14, 58, 82, 0.07);
+  --shadow-hover: 0 6px 18px rgba(46, 147, 201, 0.18);
 
   /* 不加载网络字体：几 MB 的中文字体违背「轻量」。
      Latin 交给系统 UI 字体，中文按各平台原生字体回退。 */
@@ -50,6 +55,10 @@
     --warn: #d9a54a;
     --warn-dot: #d9a54a;
     --dead: #7e9aaa;
+    --danger: #f2836f;
+
+    --shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    --shadow-hover: 0 6px 20px rgba(79, 168, 216, 0.28);
   }
 }
 
@@ -174,8 +183,6 @@ pre {
   font-size: 0.84rem;
 }
 
-/* 主区 */
-
 .page {
   padding-block: 2.25rem 0;
 }
@@ -193,21 +200,27 @@ h1 {
   margin: 0 0 1.75rem;
 }
 
-/* 分类标题同时是锚点，需留出粘性顶栏的高度，否则跳转后标题被遮住 */
-.cat__title {
-  font-size: 0.95rem;
-  font-weight: 640;
-  letter-spacing: 0.01em;
-  color: var(--ink-soft);
-  margin: 2.5rem 0 0.85rem;
-  scroll-margin-top: 4.25rem;
-}
-
 .stamp {
   margin: 1.75rem 0 0;
   font-size: 0.8rem;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+}
+
+/* 面包屑 */
+
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.crumbs__sep {
+  opacity: 0.55;
 }
 
 /* 首页导航 */
@@ -250,126 +263,241 @@ h1 {
   line-height: 1.55;
 }
 
-/* 目录：安静的文字链，不做胶囊 */
+/* 索引页：按分类的工具卡片 */
 
-.toc {
+.cat {
+  margin-top: 2rem;
+}
+
+.cat__title {
+  font-size: 0.95rem;
+  font-weight: 640;
+  color: var(--ink-soft);
+  margin: 0 0 0.85rem;
+  scroll-margin-top: 4.25rem;
+}
+
+.cat__grid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+
+.tool-card {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem 1.1rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.85rem;
-}
-
-.toc a {
-  color: var(--muted);
-}
-
-.toc a:hover {
-  color: var(--sky);
-  text-decoration: none;
-}
-
-.toc__n {
-  color: var(--sky);
-  margin-left: 0.3rem;
-  font-variant-numeric: tabular-nums;
-}
-
-/* 工具块 */
-
-.tool {
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.75rem 0.9rem;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r);
-  overflow: hidden;
-  margin-bottom: 0.7rem;
-  scroll-margin-top: 4.5rem;
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-.tool__head {
+.tool-card:hover {
+  color: var(--ink);
+  text-decoration: none;
+  border-color: var(--sky);
+  box-shadow: var(--shadow-hover);
+}
+
+.tool-card__icon {
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem 1rem;
-  flex-wrap: wrap;
-  padding: 0.7rem 1rem;
-  border-bottom: 1px solid var(--line-soft);
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  background: var(--ground);
+  border-radius: var(--r-sm);
 }
 
-.tool__name {
-  font-size: 0.98rem;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  margin: 0;
+.tool-card__text {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
-.tool__file {
-  margin: 0;
-  font-size: 0.8rem;
+.tool-card__name {
+  display: block;
+  font-weight: 640;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-card__tagline {
+  display: block;
+  font-size: 0.78rem;
   color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.tool__file code {
-  font-size: 0.95em;
+.tool-card__count {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  color: var(--sky);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 工具页标题 */
+
+.tool-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tool-title__icon {
+  font-size: 1.5rem;
 }
 
 /* 工具级说明：对该工具所有镜像源都成立，因此只出现一次 */
+
 .tool__note {
-  margin: 0;
-  padding: 0.7rem 1rem;
-  font-size: 0.82rem;
-  line-height: 1.6;
+  margin: 0 0 1.5rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.83rem;
+  line-height: 1.65;
   color: var(--muted);
-  border-bottom: 1px solid var(--line-soft);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
 }
 
-/* 镜像行：左栏元信息，右栏载荷 */
+/* 选择来源 */
 
-/* 镜像行：元信息一行、命令整幅宽度。
-   不用两栏网格——长命令行会在左栏留出大片空白，且会挤掉命令的宽度导致折行 */
-.row {
-  padding: 0.8rem 1rem;
-  border-bottom: 1px solid var(--line-soft);
+.sources {
+  margin-top: 1.5rem;
 }
 
-.row:last-child {
-  border-bottom: none;
-}
-
-.row__meta {
+.sources__head {
   display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  flex-wrap: wrap;
-  margin: 0 0 0.35rem;
-  font-size: 0.86rem;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
 }
 
-.station {
+.sources__title {
+  font-size: 0.95rem;
   font-weight: 640;
-  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin: 0;
 }
 
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex: 0 0 auto;
-  background: var(--sky);
-  align-self: center;
+.sources__count {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
-.dot--degraded {
-  background: var(--warn-dot);
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1.1rem;
 }
 
-.dot--dead {
-  background: var(--dead);
+.chip {
+  font: inherit;
+  font-size: 0.83rem;
+  padding: 0.3rem 0.85rem;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.chip:hover {
+  color: var(--sky);
+  border-color: var(--sky);
+}
+
+.chip--active {
+  color: #fff;
+  background: var(--band);
+  border-color: var(--band);
+}
+
+/* 来源面板 */
+
+.panel {
+  margin-bottom: 0.8rem;
+  padding: 0.95rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+}
+
+.panel--dead {
+  opacity: 0.68;
+}
+
+.panel__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.85rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.panel__sep {
+  opacity: 0.5;
+}
+
+.panel__addr {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+  overflow-wrap: anywhere;
+}
+
+/* 变体头：语言标签 + 标签文案。都在 pre 外面，不会被复制走 */
+
+.variant + .variant {
+  margin-top: 1rem;
+}
+
+.variant__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 0 0.4rem;
+}
+
+.variant__lang {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.variant__label {
+  font-size: 0.83rem;
+  font-weight: 640;
+  color: var(--ink-soft);
+}
+
+.note {
+  margin: 0 0 0.55rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  padding-left: 0.6rem;
+  border-left: 2px solid var(--line);
 }
 
 .status {
-  color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 .status--degraded {
@@ -380,72 +508,20 @@ h1 {
   color: var(--dead);
 }
 
-.date {
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-variant-numeric: tabular-nums;
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--sky);
 }
 
-.row__body {
-  min-width: 0;
+.dot--degraded {
+  background: var(--warn-dot);
 }
 
-.row--dead .row__body {
-  opacity: 0.66;
-}
-
-.endpoint {
-  margin: 0 0 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--muted);
-  overflow-wrap: anywhere;
-}
-
-/* note 承载两种语义：中性解释（如「路径末段不能省」）与风险提示。
-   默认走中性，仅当该条自身状态为 degraded/dead 时才取状态色，
-   否则一条普通的说明也会看起来像警告 */
-.note {
-  margin: 0 0 0.5rem;
-  font-size: 0.82rem;
-  color: var(--muted);
-  padding-left: 0.6rem;
-  border-left: 2px solid var(--line);
-}
-
-.row--degraded .note {
-  color: var(--warn);
-  border-left-color: var(--warn-dot);
-}
-
-.row--dead .note {
-  color: var(--dead);
-  border-left-color: var(--dead);
-}
-
-/* 变体头：语言标签 + 标签文案。都在 pre 外面，不会被复制走 */
-
-.variant + .variant {
-  margin-top: 0.9rem;
-}
-
-.variant__head {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  margin: 0 0 0.35rem;
-}
-
-.variant__lang {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-
-.variant__label {
-  font-size: 0.82rem;
-  font-weight: 640;
-  color: var(--ink-soft);
+.dot--dead {
+  background: var(--dead);
 }
 
 /* 命令块。注意——复制读的是 pre 的 textContent，
@@ -486,8 +562,7 @@ h1 {
 
 /* 长命令块限高、内部滚动。上限刻意不取整行高倍数——
    末行被切掉一半正好是个「下面还有」的提示，
-   否则切口落在两行之间会被当成内容结束。
-   同样必须写成 .cmd pre.xxx 才能压过基础样式。 */
+   否则切口落在两行之间会被当成内容结束。 */
 .cmd pre.pre--tall {
   max-height: 15.9rem;
   overflow-y: auto;
@@ -503,23 +578,111 @@ h1 {
   color: var(--ink-soft);
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease,
     border-color 0.15s ease;
 }
 
-.cmd__copy:hover,
-.cmd__copy[data-state="done"] {
+.cmd__copy:hover {
   background: var(--sky);
   border-color: var(--sky);
   color: #fff;
 }
 
-.doc {
-  display: inline-block;
-  margin-top: 0.5rem;
-  font-size: 0.79rem;
+/* 其他工具 */
+
+.siblings {
+  margin-top: 2.5rem;
+}
+
+.siblings__title {
+  font-size: 0.9rem;
+  font-weight: 640;
+  color: var(--ink-soft);
+  margin: 0 0 0.75rem;
+}
+
+.siblings__grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+}
+
+.sibling {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.sibling:hover {
+  color: var(--ink);
+  text-decoration: none;
+  border-color: var(--sky);
+  box-shadow: var(--shadow-hover);
+}
+
+.sibling__icon {
+  flex: 0 0 auto;
+  font-size: 1rem;
+}
+
+.sibling__text {
+  min-width: 0;
+}
+
+.sibling__name {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sibling__tagline {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* toast：复制反馈。底部居中，成功绿、失败红 */
+
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  z-index: 999;
+  transform: translate(-50%, 8px);
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--band);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast[data-kind="err"] {
+  background: var(--danger);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 /* 空状态 */
@@ -545,20 +708,23 @@ h1 {
   font-size: 0.95em;
 }
 
-/* 窄屏：元信息与载荷改为上下堆叠 */
+/* 窄屏 */
 
 @media (max-width: 44rem) {
   .band {
     position: static;
   }
 
-  .tool,
   .cat__title {
     scroll-margin-top: 1rem;
   }
 
-  /* 窄屏上复制按钮改为整行置于命令下方：
-     挤在侧边会占掉 60 多像素，命令被折得更碎 */
+  .tool-card__tagline,
+  .sibling__tagline {
+    /* 窄屏卡片变窄，描述留一行更利落 */
+    white-space: normal;
+  }
+
   /* 必须把 align-items 改回 stretch：竖向排列后交叉轴变为水平，
      flex-start 会让 pre 撑到内容宽度（而非容器宽度），再被 .cmd 的
      overflow:hidden 裁掉——长行会直接读不到，且内部滚动条也够不着 */

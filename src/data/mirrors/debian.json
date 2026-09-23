@@ -3,7 +3,7 @@
   "name": "Debian 13 (trixie)",
   "category": "system",
   "icon": "🌀",
-  "tagline": "apt 的 deb822 源配置，主归档与安全更新分属两个 URI",
+  "tagline": "apt 源，安全更新分属两个地址",
   "modified_file": "/etc/apt/sources.list.d/debian.sources",
   "endpoint_var": "deb",
   "var_defaults": {
