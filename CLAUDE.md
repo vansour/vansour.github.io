@@ -78,7 +78,7 @@ src/pages/index.astro      导航首页，新增板块在 links 数组里加一�
 src/pages/mirrors/index.astro  索引页：按分类的工具卡片网格
 src/pages/mirrors/[id].astro   【每工具一页】版本/来源两个下拉 + 命令面板
 src/layouts/Base.astro     全站布局 + 复制/切换脚本 + toast
-src/components/CodeBlock.astro  单个命令变体（语言标签 + 复制按钮 + pre）
+src/components/CodeBlock.astro  一块命令（可选的 note + pre + 复制按钮）
 src/components/SourcePanel.astro 一个「版本 × 源」的命令面板
 src/components/ToolCard.astro  索引页的工具卡片
 src/lib/slug.ts            由站名派生锚点 slug（渲染期推导，不入数据）
@@ -301,15 +301,19 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
 第一版顶栏用的 `#2e93c9`（更「天蓝」）白字只有 **3.42:1**，小字不合格，因此加深。
 `--sky: #2e93c9` 现在只用于**非文字**元素（边框、悬停底色），不要拿它写文字。
 
-### 三个已踩过的坑
+### 四个已踩过的坑
 
 1. **CSS 特异性互相抵消**：`.cmd pre` 是 (0,1,1)，而 `.pre--block` 只有 (0,1,0)——
    后者会被前者压掉，写了等于没写。修饰 `pre` 的类必须用 `.cmd pre.pre--block`
    这种同强度选择器。
-2. **`<noscript>` 里的 `<style>` 必须加 `is:inline`**。否则 Astro 会把它当组件样式处理，
+2. **命令块竖排时 `align-items` 必须改回 `stretch`**。窄屏把 `.cmd` 改成
+   `flex-direction: column` 后交叉轴变为水平，若保持 `flex-start`，`pre` 会撑到内容宽
+   而非容器宽，再被 `.cmd` 的 `overflow: hidden` 裁掉——长行直接读不到，
+   且内部滚动条也够不着。这条在媒体查询里注了原因，改动窄屏样式时别删。
+3. **`<noscript>` 里的 `<style>` 必须加 `is:inline`**。否则 Astro 会把它当组件样式处理，
    并把标签内容原样吐成字面量（实测产物里出现过 `{'.panel[hidden]...'}`），
    规则完全不生效——无 JS 降级会静默失效。
-3. **空字符串属性不会被省略**：`data-version={''}` 产出的是无值的 `data-version`，
+4. **空字符串属性不会被省略**：`data-version={''}` 产出的是无值的 `data-version`，
    `data-version={null}` 也一样；只有 `{值 || undefined}` 才整个不输出。
    所以脚本读取一律写成 `panel.dataset.version ?? ''`，属性缺失与属性无值都能兜住。
 
@@ -319,8 +323,9 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
 
 - **任何装饰都必须在 `pre` 外面**（左侧天蓝色条、复制按钮都是）。放进 `pre` 会被一起复制走
 - `pre` 与 `code` 标签之间**不能有换行或缩进**，否则复制出的文本带多余空白
-- 按钮挂在**变体头行右侧**，既不进 `pre`，也不绝对定位压在 `pre` 上——
-  长配置行要的是完整宽度。`.cmd` 里因此只剩 `pre`，不需要按断点改 flex 方向
+- 按钮在 **`.cmd` 内部、与 `pre` 并排**（在代码框里，但不进 `pre`、也不绝对定位压在
+  `pre` 上）。压在 `pre` 上会遮住长配置行的行尾；并排只是占掉按钮那点宽度。
+  窄屏时整条落到代码下方，见「竖排时 `align-items` 必须改回 `stretch`」那条
 
 ### 折行策略按内容区分
 

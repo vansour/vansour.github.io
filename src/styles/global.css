@@ -390,24 +390,10 @@ h1 {
   opacity: 0.68;
 }
 
-/* 变体头：语言标签 + 标签文案 + 复制按钮。都在 pre 外面，不会被复制走 */
+/* 一块命令 = 可选的 note + 命令块。块与块之间靠这条间距分开 */
 
 .variant + .variant {
   margin-top: 1rem;
-}
-
-.variant__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem;
-  margin: 0 0 0.4rem;
-}
-
-.variant__lang {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--muted);
 }
 
 .note {
@@ -418,12 +404,13 @@ h1 {
   border-left: 2px solid var(--line);
 }
 
-/* 命令块。注意——复制读的是 pre 的 textContent，
-   所以任何装饰（左侧色条、按钮）都必须留在 pre 外面，否则会被一起复制走。
-   按钮不在这块里，它挂在变体头行上（见 .cmd__copy），命令块里只剩 pre，
-   长命令行因此有完整宽度，也不再需要按断点改 flex 方向 */
+/* 命令块。注意——复制读的是 pre 的 textContent，所以任何装饰（左侧色条、按钮）
+   都必须留在 pre 外面，否则会被一起复制走。按钮在 .cmd 内部与 pre 并排：
+   既不在 pre 里，也不绝对定位压在 pre 上（压在行尾会遮住长配置行） */
 
 .cmd {
+  display: flex;
+  align-items: flex-start;
   background: var(--sky-soft);
   border-radius: var(--r-sm);
   border-left: 3px solid var(--sky);
@@ -431,6 +418,8 @@ h1 {
 }
 
 .cmd pre {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   padding: 0.6rem 0.75rem;
   background: transparent;
@@ -450,10 +439,12 @@ h1 {
   overflow-x: auto;
 }
 
-/* 复制按钮在变体头行右侧：在 pre 外面（不会被复制走），也不占命令行的宽度。
-   margin-left:auto 把它顶到行尾，窄屏换行时同样靠右 */
+/* 复制按钮：命令块里与 pre 并排的一列，宽度只占按钮本身。
+   窄屏会整条落到代码下方（见文件末尾的媒体查询） */
 .cmd__copy {
-  margin-left: auto;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin: 0.5rem 0.5rem 0 0;
   font: inherit;
   font-size: 0.75rem;
   padding: 0.2rem 0.6rem;
@@ -540,12 +531,26 @@ h1 {
     white-space: normal;
   }
 
+  /* 必须把 align-items 改回 stretch：竖向排列后交叉轴变为水平，
+     flex-start 会让 pre 撑到内容宽度（而非容器宽度），再被 .cmd 的
+     overflow:hidden 裁掉——长行会直接读不到，且内部滚动条也够不着 */
+  .cmd {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .cmd pre {
     padding: 0.6rem 0.7rem;
   }
 
-  /* 复制按钮在变体头行上，窄屏给它大一点的点击面积 */
+  /* 窄屏把按钮变成代码下方的一整条：宽度够，手指点得到 */
   .cmd__copy {
-    padding: 0.35rem 0.8rem;
+    align-self: stretch;
+    margin: 0;
+    padding: 0.45rem 0.7rem;
+    border: none;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
   }
 }
