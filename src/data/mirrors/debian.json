@@ -27,6 +27,13 @@
   ],
   "variants": [
     {
+      "key": "clear",
+      "lang": "bash",
+      "label": "清空旧配置",
+      "note": "会一并删掉 sources.list.d 下的第三方源（如 docker.list）",
+      "code": "sudo rm -rf /etc/apt/mirrors \\\n            /etc/apt/sources.list.d/* \\\n            /etc/apt/sources.list"
+    },
+    {
       "key": "sources",
       "lang": "bash",
       "label": "写入 deb822 源文件",

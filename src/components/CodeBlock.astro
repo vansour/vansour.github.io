@@ -11,10 +11,11 @@ const { id, variant } = Astro.props;
 
 <div class="variant">
   {/* 装饰（语言标签、复制按钮）都在 pre 外面，不会被一起复制走。
-      按钮放在这一行而不是压在 pre 上，长命令行才有完整宽度 */}
+      按钮放在这一行而不是压在 pre 上，长命令行才有完整宽度。
+      variant.label 不渲染：页面上最多两块命令，标题是废话；schema 里仍然必填，
+      留作数据自述与将来的多变体工具 */}
   <p class="variant__head">
     <span class="variant__lang">{variant.lang}</span>
-    <span class="variant__label">{variant.label}</span>
     <button type="button" class="cmd__copy" data-copy-target={id}>复制</button>
   </p>
 

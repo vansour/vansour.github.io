@@ -17,8 +17,6 @@ const { doc } = Astro.props;
 const slugs = makeSlugs(
   doc.mirrors.map((m) => ({ name: m.station, endpoint: m.perVersion[0]?.endpoint ?? '' })),
 );
-// 页级汇总的核实日期取该工具最新的一条
-const verified = doc.mirrors.map((m) => m.verified_at).sort().at(-1) ?? '';
 
 // 没有 versions 的工具在解析期已被补成单项（key 为空串），所以这里不必判空
 const firstVersionKey = doc.versions[0].key;
@@ -46,8 +44,6 @@ const groups = REGION.map((region) => ({
     <a href="/mirrors/">🪞 国内镜像源</a>
     <span class="crumbs__sep" aria-hidden="true">/</span>
     <span>{doc.id}</span>
-    <span class="crumbs__sep" aria-hidden="true">·</span>
-    <span>{doc.tagline}</span>
   </nav>
 
   <h1 class="tool-title">
@@ -104,8 +100,4 @@ const groups = REGION.map((region) => ({
       )),
     )
   }
-
-  <p class="stamp">
-    本页数据核实于 <time datetime={verified}>{verified}</time>，共 {doc.mirrors.length} 个源
-  </p>
 </Base>

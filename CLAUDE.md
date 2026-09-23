@@ -78,7 +78,7 @@ src/pages/index.astro      导航首页，新增板块在 links 数组里加一�
 src/pages/mirrors/index.astro  索引页：按分类的工具卡片网格
 src/pages/mirrors/[id].astro   【每工具一页】版本/来源两个下拉 + 命令面板
 src/layouts/Base.astro     全站布局 + 复制/切换脚本 + toast
-src/components/CodeBlock.astro  单个命令变体（lang + label + 复制按钮 + pre）
+src/components/CodeBlock.astro  单个命令变体（语言标签 + 复制按钮 + pre）
 src/components/SourcePanel.astro 一个「版本 × 源」的命令面板
 src/components/ToolCard.astro  索引页的工具卡片
 src/lib/slug.ts            由站名派生锚点 slug（渲染期推导，不入数据）
@@ -336,9 +336,13 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
 - 不提供 `curl | bash` 一类不透明脚本。命令要让人能读、能核对，这是本站的信任基础
 - 命令要让人一眼看出它**会改哪个文件**：写入类命令用 `sudo tee /etc/...` 这种把路径
   写在命令里的写法，页面上不再单列一行（那行与命令里的路径是同一个事实，写两遍只会各自过期）
-- `note` 分两级：**工具级不入 UI**（留作数据出处），**源级渲染在命令块上方**，中性灰。
-  源级 note 是页面上唯一的风险提示通道——状态标签已经不显示了，
-  所以 `degraded` / `dead` 的源必须在这里写清楚
+- `note` 分三级，只有后两级入 UI：**工具级不渲染**（留作数据出处），
+  **源级与变体级渲染在命令块上方**，中性灰。它们是页面上仅有的风险提示通道——
+  状态标签、页脚与核实日期行都已移除，所以 `degraded` / `dead` 的源、
+  以及会删文件的命令，都必须在 note 里写清楚
+- **页面上不放解释性文字**：没有页脚，没有「本页数据核实于 … 共 N 个源」，
+  面板上那行元信息与「修改 /etc/…」也都删了。`verified_at` 与 `status` 只作为
+  数据字段存在、不再渲染——**字段仍然必填且必须真实**，它们是给维护者和将来的 UI 用的
 - 不加载网络字体（中文字体体积违背「轻量」）。Latin 走系统 UI 字体，中文按平台回退
 - 动效只用在与用户操作对应的反馈上（悬停、复制成功），不做进场动画
 
