@@ -259,7 +259,13 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
   符合第一节的署名规则。**若将来要加任何会 commit 回仓库的自动化步骤，
   必须注意这一点**——默认的机器人身份会污染提交历史，需要显式指定 vansour 身份，
   或改成不落库的方案。
-- 因为走 Actions 发布、不经过 Jekyll，所以**不需要 `.nojekyll`**。
+- 因为走 Actions 发布、不经过 Jekyll，所以**不需要 `.nojekyll`**。不过要留意：
+  `upload-pages-artifact` 从 **v4 起不把隐藏文件放进产物**（v5 起可用
+  `include-hidden-files: true` 打开）。当前 `dist/` 里没有任何点文件，所以无影响；
+  但如果哪天要往 `public/` 里放 `.nojekyll` 之类的东西，必须同时打开这个开关，
+  否则它会**静默消失**，而且构建和发布都是绿的。
+- workflow 里的 action 一律写浮动大版本（`@v7`），升级时先看一遍 release notes：
+  这类跳跃常伴随「隐藏文件不入产物」这种不会报错的静默行为变化。
 - 线上验证复制保真时，注意正则里的 `\s*` 恒为真，检测「是否存在空白」要用 `\s+`，
   否则会得到「35 个命令块全部有问题」这种假警报。
 
