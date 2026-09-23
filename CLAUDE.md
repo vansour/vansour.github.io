@@ -151,14 +151,42 @@ npm run check    # astro check，类型检查
 ## 三、部署
 
 `.github/workflows/deploy.yml` 在 push 到 `main` 后构建并发布到 Pages。
+线上地址 <https://vansour.github.io>，镜像源页在 `/mirrors/`。
 
-- **发布源必须设为 "GitHub Actions"**（仓库 Settings → Pages），不能选 main 分支——
-  选了分支就走 Jekyll，Astro 的源码不会被构建。
+### 发布源必须是 workflow，不能是分支
+
+新建的 GitHub Pages 仓库默认是 **legacy 模式**（`build_type: legacy`），
+把 `main` 分支根目录当 Jekyll 站点发布。本仓库根目录没有 `index.html`
+（只有 `index.astro`），所以 legacy 模式下线上是 **404**——而且它还会自动跑一条
+`pages-build-deployment`，把源码（`.astro`、CLAUDE.md）当静态文件直接发出去。
+
+改成 workflow 模式：
+
+```bash
+gh api -X PUT repos/vansour/vansour.github.io/pages -f build_type=workflow
+gh api repos/vansour/vansour.github.io/pages --jq .build_type   # 核对
+```
+
+### 部署工作流报 success 不等于站点正常
+
+**已踩过**：`build_type` 还是 legacy 时，`deploy.yml` 显示 `success`，
+但产物根本没被 Pages 采用，线上仍是 404。**改完必须实际验证**：
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
+```
+
+不要以 Actions 的状态图标代替真实检查。
+
+### 其他
+
 - 该 workflow **只读仓库、不写提交**，因此不会出现 `github-actions[bot]` 的提交，
   符合第一节的署名规则。**若将来要加任何会 commit 回仓库的自动化步骤，
   必须注意这一点**——默认的机器人身份会污染提交历史，需要显式指定 vansour 身份，
   或改成不落库的方案。
-- 因为走 Actions 发布，不经过 Jekyll，所以**不需要 `.nojekyll`**。
+- 因为走 Actions 发布、不经过 Jekyll，所以**不需要 `.nojekyll`**。
+- 线上验证复制保真时，注意正则里的 `\s*` 恒为真，检测「是否存在空白」要用 `\s+`，
+  否则会得到「35 个命令块全部有问题」这种假警报。
 
 ## 四、视觉系统
 
