@@ -1,0 +1,88 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = '个人导航页' } = Astro.props;
+
+const path = Astro.url.pathname;
+const nav = [
+  { href: '/', label: '首页' },
+  { href: '/mirrors/', label: '国内镜像源' },
+];
+const isCurrent = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href);
+---
+
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body>
+    <header class="band">
+      <div class="wrap band__inner">
+        <a class="band__brand" href="/">vansour</a>
+        <nav class="band__nav">
+          {
+            nav.map((item) => (
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </header>
+
+    <div class="wrap page">
+      <slot />
+    </div>
+
+    <footer class="wrap foot">
+      数据均标注核实日期。镜像站状态会变，动手前请以镜像站官方文档为准。
+    </footer>
+
+    <script>
+      // 复制按钮：统一走事件委托，新增内容无需重新绑定
+      document.addEventListener('click', async (event) => {
+        const button = (event.target as Element | null)?.closest<HTMLButtonElement>(
+          '[data-copy-target]',
+        );
+        if (!button) return;
+
+        const target = document.getElementById(button.dataset.copyTarget ?? '');
+        if (!target) return;
+
+        const text = target.textContent ?? '';
+        const label = button.textContent ?? '复制';
+
+        try {
+          await navigator.clipboard.writeText(text);
+          button.textContent = '已复制';
+          button.dataset.state = 'done';
+        } catch {
+          // 非安全上下文下 Clipboard API 不可用，退回选中文本让用户手动复制
+          const range = document.createRange();
+          range.selectNodeContents(target);
+          const selection = window.getSelection();
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+          button.textContent = '已选中';
+          button.dataset.state = 'done';
+        }
+
+        window.setTimeout(() => {
+          button.textContent = label;
+          delete button.dataset.state;
+        }, 1800);
+      });
+    </script>
+  </body>
+</html>

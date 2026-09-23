@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.astro/
+
+# 环境变量与本地配置
+.env
+.env.*
+!.env.example
+
+# 编辑器与系统
+.DS_Store
+*.log
+.vscode/
+.idea/

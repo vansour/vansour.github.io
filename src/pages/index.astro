@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/Base.astro';
+
+// 导航首页。新增板块时在这里加一项即可
+const links = [
+  {
+    href: '/mirrors/',
+    title: '国内镜像源',
+    desc: '各语言、系统包管理器的国内镜像源，附可直接粘贴的配置命令与核实日期。',
+  },
+];
+---
+
+<Base title="vansour" description="个人导航页">
+  <h1>导航</h1>
+  <p class="lede">自用索引，顺手公开。</p>
+
+  <ul class="links">
+    {
+      links.map((link) => (
+        <li>
+          <a class="links__item" href={link.href}>
+            <span class="links__name">{link.title}</span>
+            <span class="links__desc">{link.desc}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</Base>

@@ -1,0 +1,558 @@
+/* ==========================================================================
+   天蓝色系统
+   顶部一条深天蓝的「天」，页面底色是淡天蓝的「空」，内容浮在白面上。
+   对比度均按 WCAG AA 核算：正文/链接 >= 4.5:1，色带上的白色小字 >= 4.5:1。
+   ========================================================================== */
+
+:root {
+  --ink: #0e3a52; /* 正文与标题 */
+  --ink-soft: #14577a; /* 链接、强调文字 */
+  --muted: #3f6e8a; /* 日期、元信息 */
+  --band: #1c7aa8; /* 顶栏底色（白字在其上 4.77:1）*/
+
+  --sky: #2e93c9; /* 主色：圆点、边框、悬停 */
+  --sky-soft: #d2e8f5; /* 命令块底 */
+  --ground: #eaf4fb; /* 页面底 —— 天空 */
+  --surface: #ffffff; /* 内容面 */
+  --line: #c7e0ef; /* 分隔线 */
+  --line-soft: #dcedf7;
+
+  --warn: #8f5d0b; /* 有限制 */
+  --warn-dot: #c8922e;
+  --dead: #4e7186; /* 已停用 */
+
+  --r: 10px;
+  --r-sm: 6px;
+
+  /* 不加载网络字体：几 MB 的中文字体违背「轻量」。
+     Latin 交给系统 UI 字体，中文按各平台原生字体回退。 */
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", "Noto Sans CJK SC",
+    "Source Han Sans SC", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono",
+    "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8f3fa;
+    --ink-soft: #a9d3ea;
+    --muted: #8fb3c7;
+    --band: #103449;
+
+    --sky: #4fa8d8;
+    --sky-soft: #123244;
+    --ground: #0b1f2b;
+    --surface: #0f2836;
+    --line: #1b4155;
+    --line-soft: #163646;
+
+    --warn: #d9a54a;
+    --warn-dot: #d9a54a;
+    --dead: #7e9aaa;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--sky);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+code,
+pre {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+}
+
+.wrap {
+  max-width: 60rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+/* 顶栏 —— 「天」 */
+
+.band {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--band);
+}
+
+.band__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-block: 0.7rem;
+}
+
+.band__brand {
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.band__brand:hover {
+  color: #fff;
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.band__nav {
+  display: flex;
+  gap: 1.15rem;
+  font-size: 0.88rem;
+}
+
+.band__nav a {
+  color: rgba(255, 255, 255, 0.82);
+  padding-block: 0.15rem;
+  border-bottom: 2px solid transparent;
+}
+
+.band__nav a:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
+.band__nav a[aria-current="page"] {
+  color: #fff;
+  border-bottom-color: rgba(255, 255, 255, 0.7);
+}
+
+/* 页脚 */
+
+.foot {
+  margin-top: 3.5rem;
+  padding-block: 1.4rem 2.5rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+/* 主区 */
+
+.page {
+  padding-block: 2.25rem 0;
+}
+
+h1 {
+  font-size: 1.7rem;
+  font-weight: 680;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.4rem;
+}
+
+.lede {
+  color: var(--muted);
+  max-width: 42rem;
+  margin: 0 0 1.75rem;
+}
+
+/* 分类标题同时是锚点，需留出粘性顶栏的高度，否则跳转后标题被遮住 */
+.cat__title {
+  font-size: 0.95rem;
+  font-weight: 640;
+  letter-spacing: 0.01em;
+  color: var(--ink-soft);
+  margin: 2.5rem 0 0.85rem;
+  scroll-margin-top: 4.25rem;
+}
+
+.stamp {
+  margin: 1.75rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 首页导航 */
+
+.links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+}
+
+.links__item {
+  display: block;
+  padding: 0.95rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  color: var(--ink);
+  transition: border-color 0.15s ease;
+}
+
+.links__item:hover {
+  border-color: var(--sky);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.links__name {
+  display: block;
+  font-weight: 640;
+  margin-bottom: 0.2rem;
+}
+
+.links__desc {
+  display: block;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+/* 目录：安静的文字链，不做胶囊 */
+
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.toc a {
+  color: var(--muted);
+}
+
+.toc a:hover {
+  color: var(--sky);
+  text-decoration: none;
+}
+
+.toc__n {
+  color: var(--sky);
+  margin-left: 0.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 工具块 */
+
+.tool {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+  margin-bottom: 0.7rem;
+  scroll-margin-top: 4.5rem;
+}
+
+.tool__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.tool__name {
+  font-size: 0.98rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.tool__file {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.tool__file code {
+  font-size: 0.95em;
+}
+
+/* 工具级说明：对该工具所有镜像源都成立，因此只出现一次 */
+.tool__note {
+  margin: 0;
+  padding: 0.7rem 1rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+/* 镜像行：左栏元信息，右栏载荷 */
+
+/* 镜像行：元信息一行、命令整幅宽度。
+   不用两栏网格——长命令行会在左栏留出大片空白，且会挤掉命令的宽度导致折行 */
+.row {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.35rem;
+  font-size: 0.86rem;
+}
+
+.station {
+  font-weight: 640;
+  font-size: 0.9rem;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--sky);
+  align-self: center;
+}
+
+.dot--degraded {
+  background: var(--warn-dot);
+}
+
+.dot--dead {
+  background: var(--dead);
+}
+
+.status {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.status--degraded {
+  color: var(--warn);
+}
+
+.status--dead {
+  color: var(--dead);
+}
+
+.date {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.row__body {
+  min-width: 0;
+}
+
+.row--dead .row__body {
+  opacity: 0.66;
+}
+
+.endpoint {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* note 承载两种语义：中性解释（如「路径末段不能省」）与风险提示。
+   默认走中性，仅当该条自身状态为 degraded/dead 时才取状态色，
+   否则一条普通的说明也会看起来像警告 */
+.note {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  padding-left: 0.6rem;
+  border-left: 2px solid var(--line);
+}
+
+.row--degraded .note {
+  color: var(--warn);
+  border-left-color: var(--warn-dot);
+}
+
+.row--dead .note {
+  color: var(--dead);
+  border-left-color: var(--dead);
+}
+
+/* 命令块。注意——复制读的是 pre 的 textContent，
+   所以任何装饰（左侧色条、按钮）都必须留在 pre 外面，否则会被一起复制走。
+   按钮是 flex 的同级列而非绝对定位：长命令行已无余量做右内边距，
+   压在文字上会遮住命令。 */
+
+.cmd {
+  display: flex;
+  align-items: flex-start;
+  background: var(--sky-soft);
+  border-radius: var(--r-sm);
+  border-left: 3px solid var(--sky);
+  overflow: hidden;
+}
+
+.cmd pre {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  background: transparent;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* 多行片段多是配置文件内容（TOML、settings.xml），换行本身有语义。
+   窄屏上重新折行会让人误读成真的换行，所以改为原样保留 + 横向滚动。
+   单行 shell 命令则允许折行——折了也不产生歧义。
+   .cmd pre 的选择器是 (0,1,1)，这里必须同强度才能覆盖，否则规则被自己的基础样式压掉 */
+.cmd pre.pre--block {
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+/* 长命令块限高、内部滚动。上限刻意不取整行高倍数——
+   末行被切掉一半正好是个「下面还有」的提示，
+   否则切口落在两行之间会被当成内容结束。
+   同样必须写成 .cmd pre.xxx 才能压过基础样式。 */
+.cmd pre.pre--tall {
+  max-height: 15.9rem;
+  overflow-y: auto;
+}
+
+.cmd__copy {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin: 0.5rem 0.5rem 0 0;
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.cmd__copy:hover,
+.cmd__copy[data-state="done"] {
+  background: var(--sky);
+  border-color: var(--sky);
+  color: #fff;
+}
+
+.doc {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.79rem;
+}
+
+/* 空状态 */
+
+.empty {
+  padding: 1.6rem 1.25rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--r);
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.empty p {
+  margin: 0;
+}
+
+.empty__hint {
+  margin-top: 0.5rem !important;
+  font-size: 0.82rem;
+}
+
+.empty__hint code {
+  font-size: 0.95em;
+}
+
+/* 窄屏：元信息与载荷改为上下堆叠 */
+
+@media (max-width: 44rem) {
+  .band {
+    position: static;
+  }
+
+  .tool,
+  .cat__title {
+    scroll-margin-top: 1rem;
+  }
+
+  /* 窄屏上复制按钮改为整行置于命令下方：
+     挤在侧边会占掉 60 多像素，命令被折得更碎 */
+  /* 必须把 align-items 改回 stretch：竖向排列后交叉轴变为水平，
+     flex-start 会让 pre 撑到内容宽度（而非容器宽度），再被 .cmd 的
+     overflow:hidden 裁掉——长行会直接读不到，且内部滚动条也够不着 */
+  .cmd {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cmd pre {
+    padding: 0.6rem 0.7rem;
+  }
+
+  .cmd__copy {
+    align-self: stretch;
+    margin: 0;
+    padding: 0.4rem 0.7rem;
+    border: none;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
+  }
+}
