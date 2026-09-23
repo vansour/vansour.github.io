@@ -101,73 +101,12 @@
     },
     {
       "station": "官方 archive.ubuntu.com",
+      "region": "official",
       "vars": {
         "main": "https://archive.ubuntu.com/ubuntu",
         "sec": "https://security.ubuntu.com/ubuntu"
       },
       "doc": "https://launchpad.net/ubuntu/+archivemirrors",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "xtom 全球",
-      "vars": {
-        "main": "https://mirrors.xtom.com/ubuntu"
-      },
-      "doc": "https://mirrors.xtom.com/",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "xtom 香港",
-      "vars": {
-        "main": "https://mirror.xtom.com.hk/ubuntu"
-      },
-      "doc": "https://mirrors.xtom.com/",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "xtom 德国",
-      "vars": {
-        "main": "https://mirror.xtom.de/ubuntu"
-      },
-      "doc": "https://mirrors.xtom.com/",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "RIKEN 日本",
-      "vars": {
-        "main": "https://ftp.riken.jp/Linux/ubuntu"
-      },
-      "doc": "https://ftp.riken.jp/",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "KAIST 韩国",
-      "vars": {
-        "main": "https://ftp.kaist.ac.kr/ubuntu"
-      },
-      "doc": "https://ftp.kaist.ac.kr/",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "滑铁卢大学",
-      "vars": {
-        "main": "https://mirror.csclub.uwaterloo.ca/ubuntu"
-      },
-      "doc": "https://mirror.csclub.uwaterloo.ca/",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "OVH 法国",
-      "vars": {
-        "main": "https://ubuntu.mirrors.ovh.net/ubuntu"
-      },
       "status": "ok",
       "verified_at": "2026-09-23"
     }

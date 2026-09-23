@@ -1,58 +1,38 @@
 ---
 import CodeBlock from './CodeBlock.astro';
-import type { MirrorEntry } from '../data/schema';
-import { STATUS_LABEL } from '../data/schema';
+import type { MirrorEntry, ResolvedVariant } from '../data/schema';
 
 interface Props {
   docId: string;
-  mirror: MirrorEntry;
+  /** 该面板属于哪个版本；无版本的工具为空串 */
+  versionKey: string;
+  /** 源在工具内的 slug，由 makeSlugs() 在渲染期派生 */
   slug: string;
+  variants: ResolvedVariant[];
+  /** 该源自己的提醒。只有这条源有才渲染 */
+  note?: string;
+  /** 已停用的源整体淡化。状态标签本身不展示了，所以 dead/degraded 必须靠 note 说明 */
+  status: MirrorEntry['status'];
   active: boolean;
 }
 
-const { docId, mirror, slug, active } = Astro.props;
+const { docId, versionKey, slug, variants, note, status, active } = Astro.props;
 
-const tabId = `tab-${docId}-${slug}`;
-const panelId = `panel-${docId}-${slug}`;
-
-// 镜像首页由主地址的 origin 推导，不单独存字段
-const homepage = new URL(mirror.endpoint).origin;
+// 命令块的 DOM id。版本必须进去——否则同一源在 12 与 13 下的 id 会完全相同，
+// getElementById 只返回第一个，复制按钮会复制到另一个版本的命令。
+const blockId = (variantKey: string): string =>
+  [docId, versionKey, slug, variantKey].filter(Boolean).join('-');
 ---
 
 <div
-  class:list={['panel', `panel--${mirror.status}`]}
-  id={panelId}
-  role="tabpanel"
-  aria-labelledby={tabId}
-  tabindex="0"
+  class:list={['panel', `panel--${status}`]}
+  data-panel
+  {/* 无版本的工具不写这个属性，而不是写一个空值——脚本那边用 `?? ''` 兜底 */}
+  data-version={versionKey || undefined}
+  data-slug={slug}
   hidden={!active}
 >
-  <p class="panel__meta">
-    <span class={`dot dot--${mirror.status}`} aria-hidden="true"></span>
-    <span class={`status status--${mirror.status}`}>
-      {STATUS_LABEL[mirror.status]}
-    </span>
-    {
-      mirror.doc && (
-        <>
-          <span class="panel__sep" aria-hidden="true">·</span>
-          <a href={mirror.doc} target="_blank" rel="noopener noreferrer">
-            官方说明 ↗
-          </a>
-        </>
-      )
-    }
-    <span class="panel__sep" aria-hidden="true">·</span>
-    <a href={homepage} target="_blank" rel="noopener noreferrer">镜像首页 ↗</a>
-    <span class="panel__sep" aria-hidden="true">·</span>
-    <span class="panel__addr">{mirror.endpoint}</span>
-  </p>
+  {note && <p class="note">{note}</p>}
 
-  {mirror.note && <p class="note">{mirror.note}</p>}
-
-  {
-    mirror.variants.map((v) => (
-      <CodeBlock id={`${docId}-${slug}-${v.key}`} variant={v} />
-    ))
-  }
+  {variants.map((v) => <CodeBlock id={blockId(v.key)} variant={v} />)}
 </div>

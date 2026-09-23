@@ -17,9 +17,6 @@
   --line: #c7e0ef; /* 分隔线 */
   --line-soft: #dcedf7;
 
-  --warn: #8f5d0b; /* 有限制 */
-  --warn-dot: #c8922e;
-  --dead: #4e7186; /* 已停用 */
   --danger: #b3261e; /* 复制失败 */
 
   /* 圆角向参考站靠拢：卡片 16px，按钮 6px，chip 与 toast 胶囊 */
@@ -52,9 +49,6 @@
     --line: #1b4155;
     --line-soft: #163646;
 
-    --warn: #d9a54a;
-    --warn-dot: #d9a54a;
-    --dead: #7e9aaa;
     --danger: #f2836f;
 
     --shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
@@ -357,75 +351,43 @@ h1 {
   font-size: 1.5rem;
 }
 
-/* 工具级说明：对该工具所有镜像源都成立，因此只出现一次 */
+/* 版本 / 来源两个下拉。用原生 select，键盘、读屏、首字母跳转都由浏览器提供，
+   这里只做样式对齐，不自己造控件 */
 
-.tool__note {
-  margin: 0 0 1.5rem;
-  padding: 0.7rem 0.9rem;
+.pickers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.picker__label {
   font-size: 0.83rem;
-  line-height: 1.65;
   color: var(--muted);
+}
+
+.picker__select {
+  font: inherit;
+  font-size: 0.83rem;
+  max-width: 100%;
+  padding: 0.3rem 0.5rem;
+  color: var(--ink);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
-}
-
-/* 选择来源 */
-
-.sources {
-  margin-top: 1.5rem;
-}
-
-.sources__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.6rem;
-}
-
-.sources__title {
-  font-size: 0.95rem;
-  font-weight: 640;
-  color: var(--ink-soft);
-  margin: 0;
-}
-
-.sources__count {
-  font-size: 0.8rem;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-bottom: 1.1rem;
-}
-
-.chip {
-  font: inherit;
-  font-size: 0.83rem;
-  padding: 0.3rem 0.85rem;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
   cursor: pointer;
-  transition: color 0.15s ease, background-color 0.15s ease,
-    border-color 0.15s ease;
+  transition: border-color 0.15s ease;
 }
 
-.chip:hover {
-  color: var(--sky);
+.picker__select:hover {
   border-color: var(--sky);
-}
-
-.chip--active {
-  color: #fff;
-  background: var(--band);
-  border-color: var(--band);
 }
 
 /* 来源面板 */
@@ -439,31 +401,13 @@ h1 {
   box-shadow: var(--shadow);
 }
 
+/* 状态不再显示在页面上，只剩这一处痕迹：已停用的源整体淡化。
+   所以 dead / degraded 的源必须靠 note 说清楚，否则读者看不出 */
 .panel--dead {
   opacity: 0.68;
 }
 
-.panel__meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.45rem;
-  margin: 0 0 0.85rem;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
-.panel__sep {
-  opacity: 0.5;
-}
-
-.panel__addr {
-  font-family: var(--font-mono);
-  font-size: 0.95em;
-  overflow-wrap: anywhere;
-}
-
-/* 变体头：语言标签 + 标签文案。都在 pre 外面，不会被复制走 */
+/* 变体头：语言标签 + 标签文案 + 复制按钮。都在 pre 外面，不会被复制走 */
 
 .variant + .variant {
   margin-top: 1rem;
@@ -471,6 +415,7 @@ h1 {
 
 .variant__head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 0.5rem;
   margin: 0 0 0.4rem;
@@ -496,42 +441,12 @@ h1 {
   border-left: 2px solid var(--line);
 }
 
-.status {
-  font-size: 0.78rem;
-}
-
-.status--degraded {
-  color: var(--warn);
-}
-
-.status--dead {
-  color: var(--dead);
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex: 0 0 auto;
-  background: var(--sky);
-}
-
-.dot--degraded {
-  background: var(--warn-dot);
-}
-
-.dot--dead {
-  background: var(--dead);
-}
-
 /* 命令块。注意——复制读的是 pre 的 textContent，
    所以任何装饰（左侧色条、按钮）都必须留在 pre 外面，否则会被一起复制走。
-   按钮是 flex 的同级列而非绝对定位：长命令行已无余量做右内边距，
-   压在文字上会遮住命令。 */
+   按钮不在这块里，它挂在变体头行上（见 .cmd__copy），命令块里只剩 pre，
+   长命令行因此有完整宽度，也不再需要按断点改 flex 方向 */
 
 .cmd {
-  display: flex;
-  align-items: flex-start;
   background: var(--sky-soft);
   border-radius: var(--r-sm);
   border-left: 3px solid var(--sky);
@@ -539,8 +454,6 @@ h1 {
 }
 
 .cmd pre {
-  flex: 1 1 auto;
-  min-width: 0;
   margin: 0;
   padding: 0.6rem 0.75rem;
   background: transparent;
@@ -550,7 +463,7 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-/* 多行片段多是配置文件内容（TOML、settings.xml），换行本身有语义。
+/* 多行片段多是配置文件内容（TOML、sources.list），换行本身有语义。
    窄屏上重新折行会让人误读成真的换行，所以改为原样保留 + 横向滚动。
    单行 shell 命令则允许折行——折了也不产生歧义。
    .cmd pre 的选择器是 (0,1,1)，这里必须同强度才能覆盖，否则规则被自己的基础样式压掉 */
@@ -560,18 +473,10 @@ h1 {
   overflow-x: auto;
 }
 
-/* 长命令块限高、内部滚动。上限刻意不取整行高倍数——
-   末行被切掉一半正好是个「下面还有」的提示，
-   否则切口落在两行之间会被当成内容结束。 */
-.cmd pre.pre--tall {
-  max-height: 15.9rem;
-  overflow-y: auto;
-}
-
+/* 复制按钮在变体头行右侧：在 pre 外面（不会被复制走），也不占命令行的宽度。
+   margin-left:auto 把它顶到行尾，窄屏换行时同样靠右 */
 .cmd__copy {
-  flex: 0 0 auto;
-  align-self: flex-start;
-  margin: 0.5rem 0.5rem 0 0;
+  margin-left: auto;
   font: inherit;
   font-size: 0.75rem;
   padding: 0.2rem 0.6rem;
@@ -588,72 +493,6 @@ h1 {
   background: var(--sky);
   border-color: var(--sky);
   color: #fff;
-}
-
-/* 其他工具 */
-
-.siblings {
-  margin-top: 2.5rem;
-}
-
-.siblings__title {
-  font-size: 0.9rem;
-  font-weight: 640;
-  color: var(--ink-soft);
-  margin: 0 0 0.75rem;
-}
-
-.siblings__grid {
-  display: grid;
-  gap: 0.55rem;
-  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
-}
-
-.sibling {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.7rem;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  color: var(--ink);
-  box-shadow: var(--shadow);
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
-}
-
-.sibling:hover {
-  color: var(--ink);
-  text-decoration: none;
-  border-color: var(--sky);
-  box-shadow: var(--shadow-hover);
-}
-
-.sibling__icon {
-  flex: 0 0 auto;
-  font-size: 1rem;
-}
-
-.sibling__text {
-  min-width: 0;
-}
-
-.sibling__name {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sibling__tagline {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* toast：复制反馈。底部居中，成功绿、失败红 */
@@ -719,31 +558,17 @@ h1 {
     scroll-margin-top: 1rem;
   }
 
-  .tool-card__tagline,
-  .sibling__tagline {
+  .tool-card__tagline {
     /* 窄屏卡片变窄，描述留一行更利落 */
     white-space: normal;
-  }
-
-  /* 必须把 align-items 改回 stretch：竖向排列后交叉轴变为水平，
-     flex-start 会让 pre 撑到内容宽度（而非容器宽度），再被 .cmd 的
-     overflow:hidden 裁掉——长行会直接读不到，且内部滚动条也够不着 */
-  .cmd {
-    flex-direction: column;
-    align-items: stretch;
   }
 
   .cmd pre {
     padding: 0.6rem 0.7rem;
   }
 
+  /* 复制按钮在变体头行上，窄屏给它大一点的点击面积 */
   .cmd__copy {
-    align-self: stretch;
-    margin: 0;
-    padding: 0.4rem 0.7rem;
-    border: none;
-    border-top: 1px solid var(--line);
-    border-radius: 0;
-    background: transparent;
+    padding: 0.35rem 0.8rem;
   }
 }

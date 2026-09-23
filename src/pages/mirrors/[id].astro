@@ -2,8 +2,8 @@
 import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
 import Base from '../../layouts/Base.astro';
 import SourcePanel from '../../components/SourcePanel.astro';
-import SiblingGrid from '../../components/SiblingGrid.astro';
 import { docs } from '../../data/index';
+import { REGION, REGION_LABEL } from '../../data/schema';
 import { makeSlugs } from '../../lib/slug';
 
 // 静态构建：每个工具一个页面。/mirrors/index/ 由索引页占用，schema 已禁止 id 取 index。
@@ -16,6 +16,19 @@ const { doc } = Astro.props;
 const slugs = makeSlugs(doc.mirrors.map((m) => m.station));
 // 页级汇总的核实日期取该工具最新的一条
 const verified = doc.mirrors.map((m) => m.verified_at).sort().at(-1) ?? '';
+
+// 没有 versions 的工具在解析期已被补成单项（key 为空串），所以这里不必判空
+const firstVersionKey = doc.versions[0].key;
+// 默认展示第一个源——JSON 里的第一条
+const defaultSlug = slugs[0] ?? '';
+
+// 来源下拉按 region 分组，组的顺序由 REGION 定义，组内保持 JSON 里的顺序
+const groups = REGION.map((region) => ({
+  region,
+  items: doc.mirrors
+    .map((mirror, i) => ({ mirror, slug: slugs[i] }))
+    .filter(({ mirror }) => mirror.region === region),
+})).filter((g) => g.items.length > 0);
 ---
 
 <Base title={`${doc.name} 国内镜像源 · vansour`} description={doc.tagline}>
@@ -23,7 +36,7 @@ const verified = doc.mirrors.map((m) => m.verified_at).sort().at(-1) ?? '';
       必须加 is:inline——否则 Astro 会把 <style> 当组件样式处理，
       并把里面的内容原样吐成字面量，规则根本不生效 */}
   <noscript>
-    <style is:inline>.panel[hidden]{display:block !important}.chips{display:none}</style>
+    <style is:inline>.panel[hidden]{display:block !important}.pickers{display:none}</style>
   </noscript>
 
   <nav class="crumbs" aria-label="面包屑">
@@ -37,46 +50,59 @@ const verified = doc.mirrors.map((m) => m.verified_at).sort().at(-1) ?? '';
   <h1 class="tool-title">
     <span class="tool-title__icon" aria-hidden="true">{doc.icon}</span>{doc.name}
   </h1>
-  <p class="lede">修改 <code>{doc.modified_file}</code></p>
 
-  {doc.note && <p class="tool__note">{doc.note}</p>}
-
-  <section class="sources">
-    <div class="sources__head">
-      <h2 class="sources__title">选择来源</h2>
-      <span class="sources__count">{doc.mirrors.length} 个可用</span>
-    </div>
-
-    <div class="chips" role="tablist" aria-label="镜像来源">
-      {
-        doc.mirrors.map((mirror, i) => (
-          <button
-            type="button"
-            role="tab"
-            class="chip"
-            id={`tab-${doc.id}-${slugs[i]}`}
-            aria-controls={`panel-${doc.id}-${slugs[i]}`}
-            aria-selected={i === 0 ? 'true' : 'false'}
-            tabindex={i === 0 ? 0 : -1}
-            data-tab
-            data-slug={slugs[i]}
-          >
-            {mirror.station}
-          </button>
-        ))
-      }
-    </div>
-
+  {/* 原生 select：键盘操作、读屏、首字母跳转都由浏览器提供，不需要自定义 ARIA。
+      两个下拉都是纯前端筛选，所有组合的面板都已在 HTML 里，JS 只切 hidden */}
+  <div class="pickers">
     {
-      doc.mirrors.map((mirror, i) => (
-        <SourcePanel docId={doc.id} mirror={mirror} slug={slugs[i]} active={i === 0} />
-      ))
+      doc.versions.length > 1 && (
+        <label class="picker">
+          <span class="picker__label">版本</span>
+          <select class="picker__select" data-version-select>
+            {doc.versions.map((v, i) => (
+              <option value={v.key} selected={i === 0}>
+                {v.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      )
     }
-  </section>
+    <label class="picker">
+      <span class="picker__label">来源</span>
+      <select class="picker__select" data-source-select>
+        {
+          groups.map((g) => (
+            <optgroup label={REGION_LABEL[g.region]}>
+              {g.items.map(({ mirror, slug }) => (
+                <option value={slug} selected={slug === defaultSlug}>
+                  {mirror.station}
+                </option>
+              ))}
+            </optgroup>
+          ))
+        }
+      </select>
+    </label>
+  </div>
+
+  {
+    doc.mirrors.map((mirror, mi) =>
+      mirror.perVersion.map((set) => (
+        <SourcePanel
+          docId={doc.id}
+          versionKey={set.versionKey}
+          slug={slugs[mi]}
+          variants={set.variants}
+          note={mirror.note}
+          status={mirror.status}
+          active={set.versionKey === firstVersionKey && slugs[mi] === defaultSlug}
+        />
+      )),
+    )
+  }
 
   <p class="stamp">
     本页数据核实于 <time datetime={verified}>{verified}</time>，共 {doc.mirrors.length} 个源
   </p>
-
-  <SiblingGrid docs={docs} currentId={doc.id} />
 </Base>

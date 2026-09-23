@@ -123,71 +123,61 @@ const isCurrent = (href: string) => {
       });
 
       /* ---------------------------------------------------------------- *
-       * 来源切换（chip + panel）
-       * 无 JS 时靠页面里的 <noscript> 放开全部面板，此处只在有 chip 时启用
+       * 版本 / 来源切换（两个原生 select + 面板）
+       * 「版本 × 源」的所有面板都已在 HTML 里，这里只切 hidden，
+       * 不做运行期字符串替换——显示的命令必须与构建产物逐字一致。
+       * 无 JS 时靠页面里的 <noscript> 放开全部面板并隐藏下拉。
        * ---------------------------------------------------------------- */
 
-      const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-tab]'));
+      const versionSel = document.querySelector<HTMLSelectElement>('[data-version-select]');
+      const sourceSel = document.querySelector<HTMLSelectElement>('[data-source-select]');
 
-      if (tabs.length > 0) {
-        const tablist = tabs[0].closest('[role="tablist"]');
-        // aria-controls 的值是 panel-<docId>-<slug>，slug 本身可能含连字符，
-        // 所以用 data-slug 取，不从 id 反推
-        const panels = tabs.map((t) =>
-          document.getElementById(
-            `panel-${t.id.replace(/^tab-/, '')}`,
-          ),
-        );
+      if (sourceSel) {
+        const panels = Array.from(document.querySelectorAll<HTMLElement>('[data-panel]'));
+        // 打开页面时的默认项（SSR 里被标了 selected 的那两个）——坏 hash 回退到这里。
+        // 不能用 options[0]：来源下拉按 region 分组，第一项是「官方」组里的源，
+        // 那样一个打错的 hash 会把人静默换到官方源（国内通常最慢的那个）上去
+        const defaultVersion = versionSel?.value ?? '';
+        const defaultSource = sourceSel.value;
 
-        const activate = (index: number, focus = false): void => {
-          tabs.forEach((tab, i) => {
-            const on = i === index;
-            tab.classList.toggle('chip--active', on);
-            tab.setAttribute('aria-selected', on ? 'true' : 'false');
-            tab.tabIndex = on ? 0 : -1;
-            const panel = panels[i];
-            if (panel) panel.hidden = !on;
-          });
-          if (focus) tabs[index]?.focus();
-        };
-
-        const indexFromHash = (): number => {
-          const hash = decodeURIComponent(location.hash.slice(1));
-          if (!hash) return 0;
-          const i = tabs.findIndex((t) => t.dataset.slug === hash);
-          return i === -1 ? 0 : i; // 不认识的 hash 回退到第一个源
-        };
-
-        const select = (index: number): void => {
-          activate(index);
-          const slug = tabs[index]?.dataset.slug;
-          if (slug) history.replaceState(null, '', `#${slug}`);
-        };
-
-        tabs.forEach((tab, i) => {
-          tab.addEventListener('click', () => select(i));
-        });
-
-        // 方向键 / Home / End 切换，符合 tab 控件的键盘约定
-        tablist?.addEventListener('keydown', (event) => {
-          const key = (event as KeyboardEvent).key;
-          const from = indexFromHash();
-          let next: number | null = null;
-
-          if (key === 'ArrowRight') next = (from + 1) % tabs.length;
-          else if (key === 'ArrowLeft') next = (from - 1 + tabs.length) % tabs.length;
-          else if (key === 'Home') next = 0;
-          else if (key === 'End') next = tabs.length - 1;
-
-          if (next !== null) {
-            event.preventDefault();
-            select(next);
-            tabs[next]?.focus();
+        const render = (): void => {
+          const version = versionSel?.value ?? '';
+          const slug = sourceSel.value;
+          for (const panel of panels) {
+            // 无版本的工具没有版本下拉，面板上可能连 data-version 都没有
+            panel.hidden = !((panel.dataset.version ?? '') === version && panel.dataset.slug === slug);
           }
-        });
+        };
 
-        window.addEventListener('hashchange', () => activate(indexFromHash()));
-        activate(indexFromHash());
+        /** 认得的值就用它，不认识退回页面默认值——坏 hash 不该让来源随机停在别处 */
+        const setOrReset = (sel: HTMLSelectElement | null, value: string, fallback: string): void => {
+          if (!sel) return;
+          const known = Array.from(sel.options).some((o) => o.value === value);
+          sel.value = known ? value : fallback;
+        };
+
+        /** 深链：#<版本key>/<源slug>；无版本的工具是 #<源slug> */
+        const applyHash = (): void => {
+          const hash = decodeURIComponent(location.hash.slice(1));
+          if (!hash) return;
+          const [first, second] = hash.split('/');
+          const hasVersion = second !== undefined;
+          if (hasVersion) setOrReset(versionSel, first, defaultVersion);
+          setOrReset(sourceSel, hasVersion ? second : first, defaultSource);
+          render();
+        };
+
+        const onChange = (): void => {
+          render();
+          const parts = [versionSel?.value ?? '', sourceSel.value].filter(Boolean);
+          history.replaceState(null, '', `#${parts.join('/')}`);
+        };
+
+        versionSel?.addEventListener('change', onChange);
+        sourceSel.addEventListener('change', onChange);
+        window.addEventListener('hashchange', applyHash);
+
+        applyHash();
       }
     </script>
   </body>

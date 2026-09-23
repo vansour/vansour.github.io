@@ -1,6 +1,6 @@
 {
   "id": "debian",
-  "name": "Debian 13 (trixie)",
+  "name": "Debian",
   "category": "system",
   "icon": "🌀",
   "tagline": "apt 源，安全更新分属两个地址",
@@ -9,12 +9,28 @@
   "var_defaults": {
     "sec": "{deb}-security"
   },
+  "versions": [
+    {
+      "key": "13",
+      "label": "13 (trixie)",
+      "vars": {
+        "suite": "trixie"
+      }
+    },
+    {
+      "key": "12",
+      "label": "12 (bookworm)",
+      "vars": {
+        "suite": "bookworm"
+      }
+    }
+  ],
   "variants": [
     {
       "key": "sources",
       "lang": "bash",
       "label": "写入 deb822 源文件",
-      "code": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: {deb}\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {deb}\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: {sec}\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {sec}\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update"
+      "code": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: {deb}\nSuites: {suite} {suite}-updates {suite}-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {deb}\nSuites: {suite} {suite}-updates {suite}-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: {sec}\nSuites: {suite}-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {sec}\nSuites: {suite}-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update"
     }
   ],
   "mirrors": [
@@ -101,72 +117,11 @@
     },
     {
       "station": "官方 deb.debian.org",
+      "region": "official",
       "vars": {
         "deb": "https://deb.debian.org/debian"
       },
       "doc": "https://www.debian.org/mirror/list",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "xtom 全球",
-      "vars": {
-        "deb": "https://mirrors.xtom.com/debian"
-      },
-      "doc": "https://mirrors.xtom.com/",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "xtom 香港",
-      "vars": {
-        "deb": "https://mirror.xtom.com.hk/debian"
-      },
-      "doc": "https://mirrors.xtom.com/",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "xtom 德国",
-      "vars": {
-        "deb": "https://mirror.xtom.de/debian"
-      },
-      "doc": "https://mirrors.xtom.com/",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "RIKEN 日本",
-      "vars": {
-        "deb": "https://ftp.riken.jp/Linux/debian/debian"
-      },
-      "doc": "https://ftp.riken.jp/",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "KAIST 韩国",
-      "vars": {
-        "deb": "https://ftp.kaist.ac.kr/debian"
-      },
-      "doc": "https://ftp.kaist.ac.kr/",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "滑铁卢大学",
-      "vars": {
-        "deb": "https://mirror.csclub.uwaterloo.ca/debian"
-      },
-      "doc": "https://mirror.csclub.uwaterloo.ca/",
-      "status": "ok",
-      "verified_at": "2026-09-23"
-    },
-    {
-      "station": "OVH 法国",
-      "vars": {
-        "deb": "https://debian.mirrors.ovh.net/debian"
-      },
       "status": "ok",
       "verified_at": "2026-09-23"
     }

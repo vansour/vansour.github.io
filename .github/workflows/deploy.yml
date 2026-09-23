@@ -27,6 +27,8 @@ jobs:
           cache: npm
 
       - run: npm ci
+      # 类型检查在建站之前：数据/组件的类型错误不该等到发布后才发现
+      - run: npm run check
       - run: npm run build
 
       - uses: actions/configure-pages@v5

@@ -76,11 +76,11 @@ GitHub Pages 用户站点，Astro 静态站。最终地址 <https://vansour.gith
 astro.config.mjs           site / build 配置，换域名只改这里
 src/pages/index.astro      导航首页，新增板块在 links 数组里加一项
 src/pages/mirrors/index.astro  索引页：按分类的工具卡片网格
-src/pages/mirrors/[id].astro   【每工具一页】chip 切换 + 各源的面板
+src/pages/mirrors/[id].astro   【每工具一页】版本/来源两个下拉 + 命令面板
 src/layouts/Base.astro     全站布局 + 复制/切换脚本 + toast
-src/components/CodeBlock.astro  单个命令变体（lang + label + pre + 复制）
-src/components/SourcePanel.astro 一个镜像源的面板
-src/components/ToolCard.astro / SiblingGrid.astro  卡片与「其他工具」
+src/components/CodeBlock.astro  单个命令变体（lang + label + 复制按钮 + pre）
+src/components/SourcePanel.astro 一个「版本 × 源」的命令面板
+src/components/ToolCard.astro  索引页的工具卡片
 src/lib/slug.ts            由站名派生锚点 slug（渲染期推导，不入数据）
 src/styles/global.css      全站样式，含 prefers-color-scheme 暗色
 src/data/schema.ts         数据结构的 zod 定义与中文标签
@@ -99,23 +99,41 @@ src/data/mirrors/*.json    【内容都在这里】一个工具一个文件
 `Astro.url.pathname` 自带尾斜杠。所以**内链一律写成带尾斜杠的绝对路径**
 （`/mirrors/${doc.id}/`），少写一个斜杠会被 GitHub Pages 301 一次。
 
-切换 chip 写的是 `#<slug>`，可深链、可后退。slug 由 `makeSlugs()` 从站名派生
-（取 ASCII 部分，无则退回序号），**不往数据里加字段**。注意 slug 本身可能含连字符，
-所以脚本用 `data-slug` 取，不从 `aria-controls` 的 id 反推。
+切换写进地址栏的是 `#<版本key>/<源slug>`（无版本的工具退回 `#<源slug>`），可深链。
+slug 由 `makeSlugs()` 从站名派生（取 ASCII 部分，无则退回序号），**不往数据里加字段**。
+面板靠 `data-version` / `data-slug` 定位，没有 id，也不从别的属性反推——slug 本身含连字符，
+拼不出可靠的结构。认不出的 hash（比如指到已删除的源）回退到**页面默认值**，
+而不是下拉里的第一项：来源下拉是按 region 分组的，第一项是官方源，
+拿它当兜底会把打错链接的人静默换到国外官方源上。
 
 ### 常用命令
 
 ```bash
 npm run dev      # 本地预览
 npm run build    # 构建到 dist/，同时校验所有数据文件
-npm run check    # astro check，类型检查
+npm run check    # astro check，类型检查（deploy.yml 里排在 build 之前，类型错了不发）
 ```
+
+### 依赖升级的一个硬约束：TypeScript 钉在 6.x
+
+`astro check` **不支持 TypeScript 7**——装上 7 之后它会直接报错退出
+（「astro check does not currently support TypeScript 7.0」），而类型检查是发布前的
+一道闸门，不能没有。所以 `typescript` 的版本范围是 `^6`，`npm update` 到 7 之前
+必须先确认 Astro 那边的情况：官方提到 `@astrojs/ts-content-mapper` 对 7.1+ 是**实验性**
+支持，等它转正再升。
+
+`zod` 已在 4.x。升级 zod 大版本时注意两处 zod 4 的改动（`schema.ts` 里都注了原因）：
+`record` 的键名报错不再取 key schema 自己的消息，必须写在 `z.record` 的第三参上；
+`z.ZodIssueCode.custom` 与 `z.string().url()` 已弃用，分别改成 `'custom'` 与 `z.url()`。
 
 ### 数据是这个项目的全部价值
 
 **页面的难点不在 UI，在数据的正确性。** 镜像源是有保质期的：淘宝 npm 镜像
 `registry.npm.taobao.org` 2022 年就停服、证书 2024 年到期，至今仍有大量文章在推荐它。
 写一条过期数据比不写更糟。
+
+数据有两个**正交**维度：**版本**（Debian 12 / 13）与**源**（清华、中科大…），
+页面上的命令是两者的组合。两条轴各自只填自己那部分变量，命令模板全站只有一份。
 
 因此新增或修改 `src/data/mirrors/*.json` 时必须遵守：
 
@@ -132,13 +150,24 @@ npm run check    # astro check，类型检查
    读者的 dotfiles 里往往还躺着过期配置，需要能对上号——这是本站相对
    其他镜像源清单的差异点。
 6. 加数据前自问：这条是核实过的，还是「我记得是这样」？后者一律去核实。
+7. **收录范围只有两类：官方源与国内公共镜像站**。国外镜像站一律不收
+   （`region` 缺省就是 `cn`，官方源写 `official`）。本站叫「国内镜像源」，
+   混进 RIKEN、KAIST、OVH 这类源只会让下拉变长，也让这个定位失焦。
+8. **新增版本必须逐源核实**。套件名提成 `{suite}` 之后，加一个版本只是几行 JSON，
+   但每个源都得确认它**确实还有**这个发行版的数据——占位符能替换，不代表那个套件在源上存在。
+   `verified_at` 是源级的：一个源同时供两个版本，就要两个版本都查到才算核实。
+   核实方法见「已核实的事实」最后一条。
 
 ### 命令只在工具级写一遍
 
-一个工具的所有命令模板写在工具级 `variants` 里，各源只填 `vars`。
-不这样组织的话，Debian 的 17 个源会各存一份 26 行、逐字节相同、只差 2 个 URI 的配置
-（迁移前 20KB，现 5.4KB）。变量值可引用其它变量（如 `"sec": "{deb}-security"`），
-使 17 个源只需填一个地址，「安全更新 URI 写错」这类坑被结构性消除。
+一个工具的所有命令模板写在工具级 `variants` 里，版本只填随发行版变的变量（`versions[].vars`），
+各源只填地址（`vars`）。变量合并顺序是「工具级默认 < 版本级 < 源级」，越具体越优先。
+
+不这样组织的话，Debian 的「2 个版本 × 10 个源」会各存一份 26 行、只差 2 个 URI 和套件名的配置
+（20 份、15.2KB 命令正文；现在整个文件 4.0KB）。变量值可引用其它变量
+（如 `"sec": "{deb}-security"`），也可以像 `Suites: {suite} {suite}-updates` 这样
+在占位符后面接字面文字。于是各源只需填一个地址、各版本只需填一个套件名，
+「安全更新 URI 写错」「套件名写错」这两类坑都被结构性消除。
 
 完整的字段与语法说明见 `src/data/mirrors/README.md`，起手可复制 `_template.json`。
 
@@ -148,8 +177,9 @@ npm run check    # astro check，类型检查
 任一不通过都会让 `npm run build` 失败。合并抛出是因为两类错误常常同源
 （改字段时顺手打错占位符），分两次报等于强制两轮往返。
 
-替换期报错**按问题分组**：模板只有一份，一个占位符写错会同时命中十几个源，
-不分组会刷屏。报错还会区分「所有源都缺」（多半模板写错）与「个别源缺」（数据漏填）。
+替换期报错**按「版本 / 变体 / 问题」分组**：模板只有一份，一个占位符写错会同时命中
+十几个「版本 × 源」组合，不分组会刷屏。报错还会区分「所有源都缺」（多半模板写错）、
+「某版本下所有源都缺」（该版本的 vars 漏了）与「个别源缺」（数据漏填）——三种的修法完全不同。
 以下划线开头的文件（`_template.json`）不参与构建。
 
 替换用**单趟分词**而非「替换后再扫残留」——变量值本身可能含花括号，
@@ -164,16 +194,22 @@ npm run check    # astro check，类型检查
   数据路径仍在。网上大量清单仍把 TUNA 列为 npm/go/maven 源，是过期的。
 - 中科大 USTC 的 help 页为 `https://mirrors.ustc.edu.cn/help/<name>.html`（带 `.html`）。
 - npm 淘宝镜像现为 `https://registry.npmmirror.com`。
-- Debian 13 = trixie；官方 deb822 源位于 `/etc/apt/sources.list.d/debian.sources`，
-  主归档套件为 `trixie trixie-updates trixie-backports`，安全更新为独立 URI
-  加 `trixie-security` 套件。
-- **部分国外源只镜像主归档、不含安全更新**：JAIST、kernel.org、Princeton 的
-  `/debian-security/` 返回 404（2026-09-23 实测，连目录列表也是 404）。
-  照搬主归档 URI 去替换安全更新 URI 会让 `apt update` 直接报错——新增源时必须
-  **分别实测两个 URI**。清华 / 中科大 / 阿里云 / 南京大学 / 腾讯云 / 华为云 /
-  网易 / 上交大 / 教育网联合这九个国内源均已实测两者兼备。
-- 滑铁卢大学（`mirror.csclub.uwaterloo.ca`）可用；NUS、Cornell 从本机连不通，
-  无法核实，故未收录——**核实不了就不写**，不要先填上再说。
+- Debian 的版本与套件名：**13 = trixie，12 = bookworm**；官方 deb822 源位于
+  `/etc/apt/sources.list.d/debian.sources`，主归档套件是 `<suite>` / `<suite>-updates` /
+  `<suite>-backports`，安全更新走独立 URI 加 `<suite>-security` 套件。
+  两个版本的 `Components:` 行一样，都是 `main contrib non-free non-free-firmware`。
+- **收录的 10 个源在两个版本上都有数据**（2026-09-23 实测）：bookworm 的三个主归档套件
+  与 `bookworm-security`、`trixie` 与 `trixie-security` 全部命中。核实方法是取 Release 文件
+  `curl -o /dev/null -w '%{http_code}' <源>/dists/<套件>/Release`，安全更新换成
+  `-security` 那个 URI 再测一次（这是最容易漏的一步）。**SJTUG 与教育网联合对所有 URL
+  返回 302**：前者跳 `mirror.sjtu.edu.cn`，后者跳成员站（实测 `mirrors.hit.edu.cn`、
+  `mirrors.jlu.edu.cn`），加 `-L` 能拿到 200 与完整 Release，apt 会自己跟随，不是故障。
+- **新增任何源都要分别实测主归档与安全更新两个 URI**——当初核实时就发现 JAIST、
+  kernel.org、Princeton 的 `/debian-security/` 是 404（2026-09-23，连目录列表也 404）。
+  只测一个就把 URI 照搬过去，会让 `apt update` 直接报错。
+- 国外源曾收录过（xtom 全球/香港/德国、RIKEN、KAIST、滑铁卢、OVH），2026-09-23 按收录范围
+  整批移除，不要再加回来。**核实不了就不写**：当初 NUS、Cornell 从本机连不通，
+  就没有先填上再说。
 - Ubuntu 当前 LTS 为 **26.04 = `resolute`**（Resolute Raccoon，2026-04-23 发布）。
   其他代号：`noble` 24.04、`jammy` 22.04、`questing` 25.10、`stonking` 26.10（开发中）。
   **不要凭记忆写代号**，用镜像站 `/ubuntu/dists/` 的目录列表核对。
@@ -181,8 +217,8 @@ npm run check    # astro check，类型检查
   `/debian-security`，而 Ubuntu 的 `resolute-security` 与 `resolute` **同在主归档
   `/ubuntu/` 下**。所以各镜像站的 Ubuntu 配置里两条 URI 是相同的，
   只有官方源分属 `archive.ubuntu.com` 与 `security.ubuntu.com` 两个域名。
-- Ubuntu 的组件是四个 `main restricted universe multiverse`（Debian 是三个，
-  且 Debian 另有 `non-free-firmware`），keyring 为 `ubuntu-archive-keyring.gpg`。
+- Ubuntu 的组件是四个 `main restricted universe multiverse`，keyring 为
+  `ubuntu-archive-keyring.gpg`；Debian 的四个是 `main contrib non-free non-free-firmware`。
 - Ubuntu 套件代号写错会让 apt 直接报「找不到该套件」，比 Debian 更容易出错
   （Debian 用固定的 trixie）。工具级 note 里已写明用
   `. /etc/os-release && echo $VERSION_CODENAME` 自查。
@@ -241,22 +277,21 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
 | 顶栏底色 `--band` | `#1c7aa8` | 白字在其上 4.77:1 |
 | 链接 `--ink-soft` | `#14577a` | 在页面底 `#eaf4fb` 上 7.05:1 |
 | 元信息 `--muted` | `#3f6e8a` | 在页面底上 4.94:1 |
-| 已停用 `--dead` | `#4e7186` | 在白面上 5.21:1 |
 
 第一版顶栏用的 `#2e93c9`（更「天蓝」）白字只有 **3.42:1**，小字不合格，因此加深。
-`--sky: #2e93c9` 现在只用于**非文字**元素（圆点、边框、悬停底色），不要拿它写文字。
+`--sky: #2e93c9` 现在只用于**非文字**元素（边框、悬停底色），不要拿它写文字。
 
-### 两个已踩过的坑
+### 三个已踩过的坑
 
 1. **CSS 特异性互相抵消**：`.cmd pre` 是 (0,1,1)，而 `.pre--block` 只有 (0,1,0)——
    后者会被前者压掉，写了等于没写。修饰 `pre` 的类必须用 `.cmd pre.pre--block`
    这种同强度选择器。
-2. **命令块竖排时 `align-items` 必须改回 `stretch`**。若保持 `flex-start`，
-   交叉轴（水平）上 `pre` 会撑到内容宽而非容器宽，再被 `.cmd` 的 `overflow: hidden`
-   裁掉，长行直接读不到，且内部滚动条也够不着。
-3. **`<noscript>` 里的 `<style>` 必须加 `is:inline`**。否则 Astro 会把它当组件样式处理，
+2. **`<noscript>` 里的 `<style>` 必须加 `is:inline`**。否则 Astro 会把它当组件样式处理，
    并把标签内容原样吐成字面量（实测产物里出现过 `{'.panel[hidden]...'}`），
    规则完全不生效——无 JS 降级会静默失效。
+3. **空字符串属性不会被省略**：`data-version={''}` 产出的是无值的 `data-version`，
+   `data-version={null}` 也一样；只有 `{值 || undefined}` 才整个不输出。
+   所以脚本读取一律写成 `panel.dataset.version ?? ''`，属性缺失与属性无值都能兜住。
 
 ### 命令块的硬约束
 
@@ -264,23 +299,26 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
 
 - **任何装饰都必须在 `pre` 外面**（左侧天蓝色条、复制按钮都是）。放进 `pre` 会被一起复制走
 - `pre` 与 `code` 标签之间**不能有换行或缩进**，否则复制出的文本带多余空白
-- 按钮是 flex 的同级列，**不能用绝对定位压在 `pre` 上**——长命令行已无余量留右内边距
+- 按钮挂在**变体头行右侧**，既不进 `pre`，也不绝对定位压在 `pre` 上——
+  长配置行要的是完整宽度。`.cmd` 里因此只剩 `pre`，不需要按断点改 flex 方向
 
 ### 折行策略按内容区分
 
 - **单行命令**：`white-space: pre-wrap`，允许折行（shell 命令折行不产生歧义）
 - **多行片段**（`.pre--block`，即含 `\n`）：`white-space: pre` + 横向滚动。
-  这类多是配置文件内容（TOML、`settings.xml`），**换行本身有语义**，
+  这类多是配置文件内容（TOML、`sources.list`），**换行本身有语义**，
   窄屏上重新折行会被误读成真的换行
+- **不做限高**：一次只显示一块面板，26 行的 deb822 完整展开比塞进小框里滚动好读
 
 ## 五、站点约定
 
 - 面向公网，**不要提交任何密钥、token、内网地址或私人信息**
 - 不提供 `curl | bash` 一类不透明脚本。命令要让人能读、能核对，这是本站的信任基础
-- 命令旁必须显示它**会改哪个文件**
-- `note` 字段承载两种语义：中性解释与风险提示。默认渲染为中性灰，
-  仅当该条 `status` 为 `degraded` / `dead` 时才取状态色——否则一条普通的
-  说明也会看起来像警告，整页显得一惊一乍
+- 命令要让人一眼看出它**会改哪个文件**：写入类命令用 `sudo tee /etc/...` 这种把路径
+  写在命令里的写法，页面上不再单列一行（那行与命令里的路径是同一个事实，写两遍只会各自过期）
+- `note` 分两级：**工具级不入 UI**（留作数据出处），**源级渲染在命令块上方**，中性灰。
+  源级 note 是页面上唯一的风险提示通道——状态标签已经不显示了，
+  所以 `degraded` / `dead` 的源必须在这里写清楚
 - 不加载网络字体（中文字体体积违背「轻量」）。Latin 走系统 UI 字体，中文按平台回退
 - 动效只用在与用户操作对应的反馈上（悬停、复制成功），不做进场动画
 
@@ -290,8 +328,13 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
   `execCommand`，且**要检查它的布尔返回值**——参考站就是没查，
   导致两条路径都提示「已复制」。本站在 toast 上用 `data-kind="err"` 区分
 - toast 带 `role="status"` 与 `aria-live="polite"`，屏幕阅读器能听到
-- 来源切换遵守 tab 控件契约：`role="tablist"` / `role="tab"` + `aria-selected` +
-  `role="tabpanel"` + `aria-controls`，方向键与 Home/End 可切换（roving tabindex）。
-  参考站缺了 tabpanel 角色与方向键，不要跟着省
-- **无 JS 时全部面板可见**：SSR 只给非首项加 `hidden`（避免刷新时闪一下），
-  再由 `<noscript>` 里的 `is:inline` 样式放开。改动面板渲染时别破坏这条
+- 版本与来源都用**原生 `<select>`**（来源按 `region` 分 `<optgroup>`）：键盘、读屏、
+  首字母跳转都由浏览器提供，比自造 chip + roving tabindex 更可靠，也没有
+  「ARIA 契约少一条就静默失效」的风险。两个下拉都只切 `hidden`——
+  **所有「版本 × 源」的面板都在 SSR 产物里**，不做运行期字符串替换，
+  页面显示的命令必须与构建产物逐字一致
+- 切换写 `#<版本key>/<源slug>` 用 `replaceState`：点几下下拉不该在历史里留下几步，
+  后退直接离开本页。坏 hash 回退到页面默认项，不是下拉里的第一项（见「路由」一节）
+- **无 JS 时全部面板可见**：SSR 只给非当前项加 `hidden`（避免刷新时闪一下），
+  再由 `<noscript>` 里的 `is:inline` 样式放开、把两个下拉藏掉。
+  改动面板渲染时别破坏这条

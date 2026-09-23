@@ -76,5 +76,11 @@ export const byCategory = (() => {
 export const latestVerified: string | null =
   docs.flatMap((d) => d.mirrors.map((m) => m.verified_at)).sort().at(-1) ?? null;
 
-export { CATEGORY_LABEL, STATUS_LABEL } from './schema';
-export type { MirrorDoc, MirrorEntry, ResolvedVariant } from './schema';
+export { CATEGORY_LABEL, REGION_LABEL } from './schema';
+export type {
+  MirrorDoc,
+  MirrorEntry,
+  ResolvedVersion,
+  ResolvedVariant,
+  VersionedVariants,
+} from './schema';

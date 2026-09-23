@@ -4,6 +4,8 @@ import type {
   MirrorEntry,
   MirrorEntryInput,
   ResolvedVariant,
+  VersionInput,
+  VersionedVariants,
 } from './schema';
 import { DERIVED_VARS } from './schema';
 
@@ -157,6 +159,9 @@ export interface ResolveIssue {
   file: string;
   docId: string;
   station: string;
+  /** 无版本的工具为空串 */
+  versionKey: string;
+  versionLabel: string;
   /** 该工具一共有多少源——用于判断「所有源都缺这个变量」这类模板级问题 */
   mirrorTotal: number;
   variantKey?: string;
@@ -169,7 +174,12 @@ export interface ResolveIssue {
 }
 
 interface IssueCtx {
-  push(i: Omit<ResolveIssue, 'file' | 'docId' | 'station' | 'mirrorTotal'>): void;
+  push(
+    i: Omit<
+      ResolveIssue,
+      'file' | 'docId' | 'station' | 'versionKey' | 'versionLabel' | 'mirrorTotal'
+    >,
+  ): void;
 }
 
 interface Scope {
@@ -183,10 +193,16 @@ interface Scope {
   lookup: (name: string) => string | undefined;
 }
 
-function buildScope(tool: MirrorDocInput, mirror: MirrorEntryInput, ctx: IssueCtx): Scope {
-  // 工具级默认值先铺底，源级 vars 同名覆盖
+function buildScope(
+  tool: MirrorDocInput,
+  versionVars: Record<string, string>,
+  mirror: MirrorEntryInput,
+  ctx: IssueCtx,
+): Scope {
+  // 越具体越优先：工具级默认值 → 版本级 → 源级
   const raw = new Map<string, string>();
   for (const [k, v] of Object.entries(tool.var_defaults ?? {})) raw.set(k, v);
+  for (const [k, v] of Object.entries(versionVars)) raw.set(k, v);
   for (const [k, v] of Object.entries(mirror.vars)) raw.set(k, v);
 
   const values = new Map<string, string>();
@@ -262,19 +278,27 @@ export interface ResolvedMirrorResult {
 }
 
 /**
- * 把一个工具在某镜像源上的所有变体拼出来。
+ * 把一个工具在「某版本 × 某镜像源」这一个组合上的所有变体拼出来。
  * 纯函数：只读入参、不抛异常、不改入参；问题以 issues 返回，由调用方决定怎么报。
  */
 export function resolveVariants(
   tool: MirrorDocInput,
+  version: VersionInput,
   mirror: MirrorEntryInput,
   file = '(未知文件)',
 ): ResolvedMirrorResult {
   const issues: ResolveIssue[] = [];
-  const base = { file, docId: tool.id, station: mirror.station, mirrorTotal: tool.mirrors.length };
+  const base = {
+    file,
+    docId: tool.id,
+    station: mirror.station,
+    versionKey: version.key,
+    versionLabel: version.label,
+    mirrorTotal: tool.mirrors.length,
+  };
   const ctx: IssueCtx = { push: (i) => issues.push({ ...base, ...i }) };
 
-  const { values, endpoint, lookup } = buildScope(tool, mirror, ctx);
+  const { values, endpoint, lookup } = buildScope(tool, version.vars ?? {}, mirror, ctx);
   const skip = new Set(mirror.skip_variants ?? []);
   const variants: ResolvedVariant[] = [];
 
@@ -316,19 +340,39 @@ export function resolveVariants(
   return { endpoint, vars: Object.fromEntries(values), variants, issues };
 }
 
-/** 整份文档：逐源解析，汇总 issues */
+/** 没有 versions 的工具在内部分解成这一个「无版本」项，下游就不必到处判空 */
+const NO_VERSION: VersionInput = { key: '', label: '' };
+
+/**
+ * 整份文档：逐「版本 × 源」解析后按源归拢，汇总 issues。
+ * 版本与源是两个正交维度——同一批源在每个版本下都要拼一遍命令，
+ * 差异全在变量里（Debian 只差套件名），所以源不需要按版本重复写。
+ */
 export function resolveDoc(
   input: MirrorDocInput,
   file: string,
 ): { doc: MirrorDoc; issues: ResolveIssue[] } {
   const issues: ResolveIssue[] = [];
+  const list = input.versions?.length ? input.versions : [NO_VERSION];
+
   const mirrors: MirrorEntry[] = input.mirrors.map((m) => {
-    const r = resolveVariants(input, m, file);
-    issues.push(...r.issues);
+    const perVersion: VersionedVariants[] = list.map((v) => {
+      const r = resolveVariants(input, v, m, file);
+      issues.push(...r.issues);
+      return { versionKey: v.key, endpoint: r.endpoint, vars: r.vars, variants: r.variants };
+    });
     const { vars: _vars, skip_variants: _skip, ...rest } = m;
-    return { ...rest, endpoint: r.endpoint, vars: r.vars, variants: r.variants };
+    return { ...rest, perVersion };
   });
-  return { doc: { ...input, mirrors }, issues };
+
+  return {
+    doc: {
+      ...input,
+      versions: list.map((v) => ({ key: v.key, label: v.label })),
+      mirrors,
+    },
+    issues,
+  };
 }
 
 /* ==================================================================== *
@@ -356,7 +400,7 @@ export function formatResolveIssues(issues: ResolveIssue[]): string[] {
 
     const groups = new Map<string, ResolveIssue[]>();
     for (const i of list) {
-      const key = `${i.kind}|${i.variantKey ?? ''}|${i.detail}|${i.line ?? ''}`;
+      const key = `${i.kind}|${i.versionKey}|${i.variantKey ?? ''}|${i.detail}|${i.line ?? ''}`;
       const g = groups.get(key);
       if (g) g.push(i);
       else groups.set(key, [i]);
@@ -364,7 +408,9 @@ export function formatResolveIssues(issues: ResolveIssue[]): string[] {
 
     for (const g of groups.values()) {
       const f = g[0];
-      const where = f.variantLabel ? `变体「${f.variantLabel}」· ` : '';
+      const where =
+        (f.versionLabel ? `版本「${f.versionLabel}」· ` : '') +
+        (f.variantLabel ? `变体「${f.variantLabel}」· ` : '');
       out.push(`    [模板] ${where}${f.detail}`);
       if (f.line) out.push(`      第 ${f.line} 行  ${f.lineText}`);
 
@@ -379,8 +425,11 @@ export function formatResolveIssues(issues: ResolveIssue[]): string[] {
       // 命中全部源 = 模板问题；只命中个别源 = 数据问题。两者的修法完全不同
       if (f.kind === 'missing-var' && g.length >= f.mirrorTotal) {
         out.push(
-          '      提示：该工具的每个源都缺这个变量，多半是模板里的占位符写错了；' +
-            '各源一致的变量请写进工具级 var_defaults',
+          f.versionKey
+            ? `      提示：版本「${f.versionLabel}」下的每个源都缺这个变量，多半是模板里的占位符写错了，` +
+                '或该版本的 vars 里漏了它'
+            : '      提示：该工具的每个源都缺这个变量，多半是模板里的占位符写错了；' +
+                '各源一致的变量请写进工具级 var_defaults',
         );
       } else if (f.hint) {
         out.push(`      提示：${f.hint}`);
