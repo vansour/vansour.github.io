@@ -2,16 +2,28 @@
   "id": "pip",
   "name": "PyPI / pip",
   "category": "language",
+  "icon": "🐍",
+  "tagline": "Python 包管理（PyPI）",
   "modified_file": "pip 用户配置文件（Linux: ~/.config/pip/pip.conf）",
+  "endpoint_var": "url",
+  "variants": [
+    {
+      "key": "permanent",
+      "lang": "bash",
+      "label": "永久配置",
+      "code": "python -m pip install --upgrade pip\npip config set global.index-url {url}"
+    }
+  ],
   "mirrors": [
     {
       "station": "清华 TUNA",
-      "endpoint": "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple",
+      "vars": {
+        "url": "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+      },
       "doc": "https://mirrors.tuna.tsinghua.edu.cn/help/pypi/",
+      "note": "地址末段的 simple 路径不能省，且必须走 https。等价简写地址为 https://pypi.tuna.tsinghua.edu.cn/simple",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "python -m pip install --upgrade pip\npip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple",
-      "note": "地址末段的 simple 路径不能省，且必须走 https。等价简写地址为 https://pypi.tuna.tsinghua.edu.cn/simple"
+      "verified_at": "2026-09-23"
     }
   ]
 }

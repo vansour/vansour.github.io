@@ -2,16 +2,39 @@
   "id": "example",
   "name": "示例工具",
   "category": "language",
+  "icon": "🐍",
+  "tagline": "一句话说明这个工具是做什么的",
   "modified_file": "~/.example/config",
+  "note": "工具级说明，对该工具所有镜像源都成立。各源相同的注意事项写这里，不要逐条重复。",
+  "endpoint_var": "url",
+  "var_defaults": {
+    "extra": "{url}/extra"
+  },
+  "variants": [
+    {
+      "key": "permanent",
+      "lang": "bash",
+      "label": "永久配置",
+      "code": "example config set --url {url}"
+    },
+    {
+      "key": "oneshot",
+      "lang": "bash",
+      "label": "本次生效",
+      "code": "example install --index {url}",
+      "note": "只影响这一次命令"
+    }
+  ],
   "mirrors": [
     {
       "station": "示例镜像站",
-      "endpoint": "https://example.invalid/simple",
+      "vars": {
+        "url": "https://example.invalid/simple"
+      },
       "doc": "https://example.invalid/help/",
       "status": "ok",
       "verified_at": "2026-09-23",
-      "snippet": "example config set --url https://example.invalid/simple",
-      "note": "这是模板文件，以下划线开头，不会被构建读取。复制成 <工具名>.json 后使用。"
+      "note": "只对这个源成立的提醒"
     }
   ]
 }

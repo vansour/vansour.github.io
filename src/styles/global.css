@@ -423,6 +423,31 @@ h1 {
   border-left-color: var(--dead);
 }
 
+/* 变体头：语言标签 + 标签文案。都在 pre 外面，不会被复制走 */
+
+.variant + .variant {
+  margin-top: 0.9rem;
+}
+
+.variant__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0 0 0.35rem;
+}
+
+.variant__lang {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.variant__label {
+  font-size: 0.82rem;
+  font-weight: 640;
+  color: var(--ink-soft);
+}
+
 /* 命令块。注意——复制读的是 pre 的 textContent，
    所以任何装饰（左侧色条、按钮）都必须留在 pre 外面，否则会被一起复制走。
    按钮是 flex 的同级列而非绝对定位：长命令行已无余量做右内边距，

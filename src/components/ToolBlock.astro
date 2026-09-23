@@ -23,49 +23,59 @@ const TALL_LINES = 14;
   {doc.note && <p class="tool__note">{doc.note}</p>}
 
   {
-    doc.mirrors.map((mirror, index) => {
-      const snippetId = `${doc.id}-${index}`;
-      const snippetLines = mirror.snippet.split('\n').length;
-      return (
-        <div class={`row row--${mirror.status}`}>
-          <p class="row__meta">
-            <span class={`dot dot--${mirror.status}`} aria-hidden="true" />
-            <span class="station">{mirror.station}</span>
-            <span class={`status status--${mirror.status}`}>
-              {STATUS_LABEL[mirror.status]}
-            </span>
-            <time class="date" datetime={mirror.verified_at}>
-              {mirror.verified_at}
-            </time>
-          </p>
+    doc.mirrors.map((mirror, index) => (
+      <div class={`row row--${mirror.status}`}>
+        <p class="row__meta">
+          <span class={`dot dot--${mirror.status}`} aria-hidden="true" />
+          <span class="station">{mirror.station}</span>
+          <span class={`status status--${mirror.status}`}>
+            {STATUS_LABEL[mirror.status]}
+          </span>
+          <time class="date" datetime={mirror.verified_at}>
+            {mirror.verified_at}
+          </time>
+        </p>
 
-          <div class="row__body">
-            <p class="endpoint">{mirror.endpoint}</p>
+        <div class="row__body">
+          <p class="endpoint">{mirror.endpoint}</p>
 
-            {mirror.note && <p class="note">{mirror.note}</p>}
+          {mirror.note && <p class="note">{mirror.note}</p>}
 
-            {/* pre 与 code 之间不能有换行，否则复制出的文本会带多余空白。
-                装饰（左侧色条、按钮）都在 pre 外面，不会被复制走。 */}
-            <div class="cmd">
-              <pre
-                id={snippetId}
-                class:list={[
-                  mirror.snippet.includes('\n') ? 'pre--block' : '',
-                  snippetLines > TALL_LINES ? 'pre--tall' : '',
-                ]}><code>{mirror.snippet}</code></pre>
-              <button type="button" class="cmd__copy" data-copy-target={snippetId}>
-                复制
-              </button>
-            </div>
+          {mirror.variants.map((v) => {
+            const snippetId = `${doc.id}-${index}-${v.key}`;
+            const lines = v.code.split('\n').length;
+            return (
+              <div class="variant">
+                <p class="variant__head">
+                  <span class="variant__lang">{v.lang}</span>
+                  <span class="variant__label">{v.label}</span>
+                </p>
+                {v.note && <p class="note">{v.note}</p>}
 
-            {mirror.doc && (
-              <a class="doc" href={mirror.doc} target="_blank" rel="noopener noreferrer">
-                官方文档 ↗
-              </a>
-            )}
-          </div>
+                {/* pre 与 code 之间不能有换行，否则复制出的文本会带多余空白。
+                    装饰（色条、lang 标签、按钮）都在 pre 外面，不会被复制走。 */}
+                <div class="cmd">
+                  <pre
+                    id={snippetId}
+                    class:list={[
+                      v.code.includes('\n') ? 'pre--block' : '',
+                      lines > TALL_LINES ? 'pre--tall' : '',
+                    ]}><code>{v.code}</code></pre>
+                  <button type="button" class="cmd__copy" data-copy-target={snippetId}>
+                    复制
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+
+          {mirror.doc && (
+            <a class="doc" href={mirror.doc} target="_blank" rel="noopener noreferrer">
+              官方文档 ↗
+            </a>
+          )}
         </div>
-      );
-    })
+      </div>
+    ))
   }
 </article>

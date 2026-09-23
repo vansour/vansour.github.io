@@ -2,143 +2,174 @@
   "id": "debian",
   "name": "Debian 13 (trixie)",
   "category": "system",
+  "icon": "🌀",
+  "tagline": "apt 的 deb822 源配置，主归档与安全更新分属两个 URI",
   "modified_file": "/etc/apt/sources.list.d/debian.sources",
-  "note": "执行前若 /etc/apt/sources.list 里还有条目，需一并注释掉，否则新旧两个入口会同时生效。deb-src 只在需要下载源码包时才要，留着会拖慢 apt update。",
+  "endpoint_var": "deb",
+  "var_defaults": {
+    "sec": "{deb}-security"
+  },
+  "variants": [
+    {
+      "key": "sources",
+      "lang": "bash",
+      "label": "写入 deb822 源文件",
+      "code": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: {deb}\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {deb}\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: {sec}\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {sec}\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update"
+    }
+  ],
   "mirrors": [
     {
       "station": "清华 TUNA",
-      "endpoint": "https://mirrors.tuna.tsinghua.edu.cn/debian",
+      "vars": {
+        "deb": "https://mirrors.tuna.tsinghua.edu.cn/debian"
+      },
+      "doc": "https://mirrors.tuna.tsinghua.edu.cn/help/debian/",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirrors.tuna.tsinghua.edu.cn/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.tuna.tsinghua.edu.cn/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirrors.tuna.tsinghua.edu.cn/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.tuna.tsinghua.edu.cn/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://mirrors.tuna.tsinghua.edu.cn/help/debian/"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "中科大 USTC",
-      "endpoint": "https://mirrors.ustc.edu.cn/debian",
+      "vars": {
+        "deb": "https://mirrors.ustc.edu.cn/debian"
+      },
+      "doc": "https://mirrors.ustc.edu.cn/help/debian.html",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirrors.ustc.edu.cn/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.ustc.edu.cn/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirrors.ustc.edu.cn/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.ustc.edu.cn/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://mirrors.ustc.edu.cn/help/debian.html"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "阿里云",
-      "endpoint": "https://mirrors.aliyun.com/debian",
+      "vars": {
+        "deb": "https://mirrors.aliyun.com/debian"
+      },
+      "doc": "https://developer.aliyun.com/mirror/debian",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirrors.aliyun.com/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.aliyun.com/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirrors.aliyun.com/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.aliyun.com/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://developer.aliyun.com/mirror/debian"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "南京大学 NJU",
-      "endpoint": "https://mirrors.nju.edu.cn/debian",
+      "vars": {
+        "deb": "https://mirrors.nju.edu.cn/debian"
+      },
+      "doc": "https://mirrors.nju.edu.cn/help/debian",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirrors.nju.edu.cn/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.nju.edu.cn/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirrors.nju.edu.cn/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.nju.edu.cn/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://mirrors.nju.edu.cn/help/debian"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "腾讯云",
-      "endpoint": "https://mirrors.cloud.tencent.com/debian",
+      "vars": {
+        "deb": "https://mirrors.cloud.tencent.com/debian"
+      },
+      "doc": "https://mirrors.cloud.tencent.com/help/debian.html",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirrors.cloud.tencent.com/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.cloud.tencent.com/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirrors.cloud.tencent.com/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.cloud.tencent.com/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://mirrors.cloud.tencent.com/help/debian.html"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "华为云",
-      "endpoint": "https://mirrors.huaweicloud.com/debian",
+      "vars": {
+        "deb": "https://mirrors.huaweicloud.com/debian"
+      },
+      "doc": "https://mirrors.huaweicloud.com/help/debian/",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirrors.huaweicloud.com/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.huaweicloud.com/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirrors.huaweicloud.com/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.huaweicloud.com/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://mirrors.huaweicloud.com/help/debian/"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "网易",
-      "endpoint": "https://mirrors.163.com/debian",
+      "vars": {
+        "deb": "https://mirrors.163.com/debian"
+      },
+      "doc": "https://mirrors.163.com/.help/debian.html",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirrors.163.com/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.163.com/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirrors.163.com/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.163.com/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://mirrors.163.com/.help/debian.html"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "上海交大 SJTUG",
-      "endpoint": "https://mirrors.sjtug.sjtu.edu.cn/debian",
+      "vars": {
+        "deb": "https://mirrors.sjtug.sjtu.edu.cn/debian"
+      },
+      "doc": "https://mirrors.sjtug.sjtu.edu.cn/docs/debian",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirrors.sjtug.sjtu.edu.cn/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.sjtug.sjtu.edu.cn/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirrors.sjtug.sjtu.edu.cn/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.sjtug.sjtu.edu.cn/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://mirrors.sjtug.sjtu.edu.cn/docs/debian"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "教育网联合",
-      "endpoint": "https://mirrors.cernet.edu.cn/debian",
+      "vars": {
+        "deb": "https://mirrors.cernet.edu.cn/debian"
+      },
+      "doc": "https://mirrors.cernet.edu.cn/help/debian",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirrors.cernet.edu.cn/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.cernet.edu.cn/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirrors.cernet.edu.cn/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.cernet.edu.cn/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://mirrors.cernet.edu.cn/help/debian"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "官方 deb.debian.org",
-      "endpoint": "https://deb.debian.org/debian",
+      "vars": {
+        "deb": "https://deb.debian.org/debian"
+      },
+      "doc": "https://www.debian.org/mirror/list",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://deb.debian.org/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://deb.debian.org/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://deb.debian.org/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://deb.debian.org/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://www.debian.org/mirror/list"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "xtom 全球",
-      "endpoint": "https://mirrors.xtom.com/debian",
+      "vars": {
+        "deb": "https://mirrors.xtom.com/debian"
+      },
+      "doc": "https://mirrors.xtom.com/",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirrors.xtom.com/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.xtom.com/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirrors.xtom.com/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirrors.xtom.com/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://mirrors.xtom.com/"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "xtom 香港",
-      "endpoint": "https://mirror.xtom.com.hk/debian",
+      "vars": {
+        "deb": "https://mirror.xtom.com.hk/debian"
+      },
+      "doc": "https://mirrors.xtom.com/",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirror.xtom.com.hk/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirror.xtom.com.hk/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirror.xtom.com.hk/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirror.xtom.com.hk/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://mirrors.xtom.com/"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "xtom 德国",
-      "endpoint": "https://mirror.xtom.de/debian",
+      "vars": {
+        "deb": "https://mirror.xtom.de/debian"
+      },
+      "doc": "https://mirrors.xtom.com/",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirror.xtom.de/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirror.xtom.de/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirror.xtom.de/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirror.xtom.de/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://mirrors.xtom.com/"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "RIKEN 日本",
-      "endpoint": "https://ftp.riken.jp/Linux/debian/debian",
+      "vars": {
+        "deb": "https://ftp.riken.jp/Linux/debian/debian"
+      },
+      "doc": "https://ftp.riken.jp/",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://ftp.riken.jp/Linux/debian/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://ftp.riken.jp/Linux/debian/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://ftp.riken.jp/Linux/debian/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://ftp.riken.jp/Linux/debian/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://ftp.riken.jp/"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "KAIST 韩国",
-      "endpoint": "https://ftp.kaist.ac.kr/debian",
+      "vars": {
+        "deb": "https://ftp.kaist.ac.kr/debian"
+      },
+      "doc": "https://ftp.kaist.ac.kr/",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://ftp.kaist.ac.kr/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://ftp.kaist.ac.kr/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://ftp.kaist.ac.kr/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://ftp.kaist.ac.kr/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://ftp.kaist.ac.kr/"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "滑铁卢大学",
-      "endpoint": "https://mirror.csclub.uwaterloo.ca/debian",
+      "vars": {
+        "deb": "https://mirror.csclub.uwaterloo.ca/debian"
+      },
+      "doc": "https://mirror.csclub.uwaterloo.ca/",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://mirror.csclub.uwaterloo.ca/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirror.csclub.uwaterloo.ca/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://mirror.csclub.uwaterloo.ca/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://mirror.csclub.uwaterloo.ca/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update",
-      "doc": "https://mirror.csclub.uwaterloo.ca/"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "OVH 法国",
-      "endpoint": "https://debian.mirrors.ovh.net/debian",
+      "vars": {
+        "deb": "https://debian.mirrors.ovh.net/debian"
+      },
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "snippet": "sudo tee /etc/apt/sources.list.d/debian.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: https://debian.mirrors.ovh.net/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://debian.mirrors.ovh.net/debian\nSuites: trixie trixie-updates trixie-backports\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb\nURIs: https://debian.mirrors.ovh.net/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\n\nTypes: deb-src\nURIs: https://debian.mirrors.ovh.net/debian-security\nSuites: trixie-security\nComponents: main contrib non-free non-free-firmware\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nEOF\nsudo apt update"
+      "verified_at": "2026-09-23"
     }
-  ]
+  ],
+  "note": "执行前若 /etc/apt/sources.list 里还有条目，需一并注释掉，否则新旧两个入口会同时生效。deb-src 只在需要下载源码包时才要，留着会拖慢 apt update。"
 }
