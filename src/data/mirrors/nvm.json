@@ -24,16 +24,6 @@
   ],
   "mirrors": [
     {
-      "station": "清华大学开源软件镜像站",
-      "vars": {
-        "url": "https://mirrors.tuna.tsinghua.edu.cn/nodejs-release"
-      },
-      "doc": "https://mirrors.tuna.tsinghua.edu.cn/help/nodejs-release/",
-      "status": "degraded",
-      "verified_at": "2026-09-24",
-      "note": "该仓库已停止同步：最新只到 v24.1.0（2025-05），装新版本会取不到，建议换其它源"
-    },
-    {
       "station": "中国科学技术大学开源软件镜像",
       "vars": {
         "url": "https://mirrors.ustc.edu.cn/node"
@@ -66,15 +56,6 @@
       "vars": {
         "url": "https://mirrors.huaweicloud.com/nodejs"
       },
-      "status": "ok",
-      "verified_at": "2026-09-24"
-    },
-    {
-      "station": "腾讯云镜像站",
-      "vars": {
-        "url": "https://mirrors.tencent.com/nodejs-release"
-      },
-      "doc": "https://mirrors.cloud.tencent.com/help/nodejs-release.html",
       "status": "ok",
       "verified_at": "2026-09-24"
     },

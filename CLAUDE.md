@@ -257,8 +257,8 @@ npm run check    # astro check，类型检查（deploy.yml 里排在 build 之�
   再对每个源抽验它当前 LTS 的 `node-vX.Y.Z-linux-x64.tar.xz` 与 `SHASUMS256.txt` 均 200。
   （注意 nvm 是 shell 函数，套 `timeout` 会得到 127 的假失败。）
 - **TUNA 的 nodejs-release 已停止同步**：`index.tab` 的 Last-Modified 停在 **2025-05-21**，
-  最新只有 v24.1.0，v24.21.0 与 v26.10.0 都是 404。路径还在所以不是 dead，但网上清单
-  仍把它当现役 Node 源——页面标 `degraded` 并在源级 note 里写明。
+  最新只有 v24.1.0，v24.21.0 与 v26.10.0 都是 404。路径还在，但装新版本会取不到，
+  2026-09-24 按此把它从 nvm 页移除，**不要再加回来**（网上清单仍把它当现役 Node 源）。
 - **南大 nodejs-release 同步滞后**：最新 v26.8.1，缺 v26.9.0 / v26.10.0，同样标 `degraded`。
   中科大、阿里云、华为云、腾讯云的 index.tab 都是 2026-09-22/23 的，含 v26.10.0。
 - 华为云把 Node 二进制放在 **`/nodejs/`**（没有 nodejs-release 这个路径），npm registry 在
@@ -271,10 +271,10 @@ npm run check    # astro check，类型检查（deploy.yml 里排在 build 之�
   按第 8 条不收；腾讯云的 npm 帮助页（`/help/npm.html`）给的是
   `http://mirrors.tencent.com/npm/` 加 `strict-ssl false`，按第 4 / 8 条也不收。
   最终 npm 页只有 npmmirror 与华为云两家（＋官方）。
-- **腾讯云的 node 镜像收在 nvm 页**：同一站点的 `/help/nodejs-release.html` 给的是 https，
-  且明确写了 `NVM_NODEJS_ORG_MIRROR` 的用法，与它 npm 页那套明文写法是两回事。
-  它的正式域名是 `mirrors.tencent.com`（帮助页在 `mirrors.cloud.tencent.com`，
-  两个域名同一份数据）。**若当初 apt 侧移除腾讯云的本意是整站不收，把这条一并删掉。**
+- **腾讯云整站不收**（2026-09-24 定）：它的 nodejs 帮助页本身是合规的 https 写法、
+  也写了 nvm 用法，一度收在 nvm 页，但为与 apt 侧一致已一并移除，别再单独加回来。
+  它的 node 镜像正式域名是 `mirrors.tencent.com`（帮助页在 `mirrors.cloud.tencent.com`，
+  两个域名同一份数据）。
 - npm 的核实手段也是端到端：隔离 `HOME` 后 `npm config set registry …` +
   `npm pack lodash --loglevel=http`，看 tarball 实际从哪个域名取。npmmirror 的 tarball
   走它自己的 `cdn.npmmirror.com`（其元数据就是这么改写的，属正常设计），
