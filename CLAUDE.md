@@ -73,19 +73,21 @@ GitHub Pages 用户站点，Astro 静态站。最终地址 <https://vansour.gith
 ### 结构
 
 ```
-astro.config.mjs           site / build 配置，换域名只改这里
+astro.config.mjs           site / build 配置 + Tailwind 的 vite 插件，换域名只改这里
 src/pages/index.astro      导航首页，新增板块在 links 数组里加一项
 src/pages/mirrors/index.astro  索引页：按分类的工具卡片网格
 src/pages/mirrors/[id].astro   【每工具一页】版本/来源两个下拉 + 命令面板
-src/layouts/Base.astro     全站布局 + 复制/切换脚本 + toast
+src/layouts/Base.astro     全站骨架（顶栏 / 侧栏 / 内容）+ 复制/切换/主题脚本 + toast
+src/components/Sidebar.astro   左侧目录（分类 → 工具）。**同页渲染两份，内不许有 id**
 src/components/CodeBlock.astro  一块命令（可选的 note + pre + 复制按钮）
 src/components/SourcePanel.astro 一个「版本 × 源」的命令面板
-src/components/ToolCard.astro  索引页的工具卡片
+src/components/NavCard.astro   导航卡片，首页与索引页共用
 src/lib/slug.ts            由站名派生锚点 slug（渲染期推导，不入数据）
-src/styles/global.css      全站样式，含 prefers-color-scheme 暗色
+src/lib/nav.ts             导航高亮判定：isExact（只匹配本页）/ isSection（含子路径）
+src/styles/global.css      Tailwind 入口 + 调色板 + 主题别名 + 唯一的组件类 .cmd
 src/data/schema.ts         数据结构的 zod 定义与中文标签
 src/data/resolve.ts        模板占位符替换 + 报错格式化（纯函数）
-src/data/index.ts          读取、检查、聚合 mirrors/ 下所有 JSON
+src/data/index.ts          读取、检查、聚合 mirrors/ 下所有 JSON，导出 sections
 src/data/mirrors/*.json    【内容都在这里】一个工具一个文件
 ```
 
@@ -128,6 +130,13 @@ npm run check    # astro check，类型检查（deploy.yml 里排在 build 之�
 `zod` 已在 4.x。升级 zod 大版本时注意两处 zod 4 的改动（`schema.ts` 里都注了原因）：
 `record` 的键名报错不再取 key schema 自己的消息，必须写在 `z.record` 的第三参上；
 `z.ZodIssueCode.custom` 与 `z.string().url()` 已弃用，分别改成 `'custom'` 与 `z.url()`。
+
+`tailwindcss` 与 `@tailwindcss/vite` 是 devDependencies（产物是静态 CSS），走 Vite 插件
+而不是 `@astrojs/tailwind`（那是 v3 时代的 integration）。它是纯 CSS 工具，没有类型面，
+`astro check` 不受影响。**改动依赖后必须把 `package-lock.json` 一起提交**：
+CI 用的是 `npm ci`，lockfile 与 package.json 不一致会直接失败。注意平台——
+`@tailwindcss/oxide` 按平台装 optional dependency，在 musl/非 x64 机器上生成的 lockfile
+可能让 `npm ci` 在 ubuntu-latest 上装不上。
 
 ### 数据是这个项目的全部价值
 
@@ -379,7 +388,39 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
 ## 四、视觉系统
 
 天蓝色由三层构成：顶部深天蓝的「天」、淡天蓝的「空」、白色内容面。
-不用阴影和渐变分层，靠底色明暗差与 hairline。token 定义见 `global.css` 顶部。
+不用阴影和渐变分层，靠底色明暗差与 hairline。
+
+样式现在是 **Tailwind 4**（走 `@tailwindcss/vite` 插件，没有 `tailwind.config.js`——
+v4 是 CSS-first）。`src/styles/global.css` 只放三样：调色板、`@theme` 别名、
+以及**唯一保留的组件类 `.cmd`**；其余一律是组件里的工具类。
+
+### 调色板只写一处，亮暗靠 light-dark()
+
+`:root` 里每个 token 只出现一次，写成 `light-dark(亮值, 暗值)`，取值由 `color-scheme` 决定：
+
+```css
+:root { color-scheme: light dark; --band: light-dark(#1c7aa8, #103449); }
+:root[data-theme="light"] { color-scheme: light }
+:root[data-theme="dark"]  { color-scheme: dark }
+```
+
+参考站用的是「两份暗色 token 表」的老办法；我们这样写是为了让色值只存在一处，
+「对比度算过、只算一次」才成立。
+
+- **组件里不许写 `dark:` 变体，也不许写任意色值**（`text-white`、`bg-[#fff]`）：
+  换肤全由 token 层完成。`--color-*: initial` 清掉了 Tailwind 默认色板当护栏，
+  写 `text-gray-500` 会直接生成不出类名——**护栏是静默生效的**，所以自检靠 grep：
+  `grep -rn 'dark:' src/` 与 `grep -c 'dark\:' dist/_astro/*.css` 都应为空，
+  产物里 `grep -c 'oklch('` 必须为 0（默认色板全是 oklch，我们的 token 全是 hex/rgba）。
+- 会随亮暗翻转的走 `@theme inline`（官方推荐的「引用外部变量」写法）；
+  不翻转的（字体栈、断点、容器宽度）直接写 `@theme`。
+  **字体栈必须是字面量**——写成 `--font-sans: var(--font-sans)` 是自我引用，会静默失效。
+- `light-dark()` 的基线是 2024 年（Chrome 123 / Safari 17.5 / Firefox 120）。更老的浏览器上
+  token 会整条失效、退回浏览器默认色，所以**色带上的白字走 `--color-inverse` 而不是写死的
+  `#fff`**：这样退化后是「没有蓝底、黑字白底」，仍然可读；写死就会白底白字。
+  真要退回两份 token 表的老办法，改动只在这一处。
+- 阴影拆成「颜色 + 几何」两半（`--shade` → `--shadow`）：`light-dark()` 只认颜色值。
+  暗色的模糊半径因此与旧版差 1–2px，肉眼无差。
 
 ### 改配色必须重算对比度
 
@@ -392,23 +433,43 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
 | 元信息 `--muted` | `#3f6e8a` | 在页面底上 4.94:1 |
 
 第一版顶栏用的 `#2e93c9`（更「天蓝」）白字只有 **3.42:1**，小字不合格，因此加深。
-`--sky: #2e93c9` 现在只用于**非文字**元素（边框、悬停底色），不要拿它写文字。
+`--sky: #2e93c9` 只用于**非文字**元素（边框、悬停底色），不要拿它写文字。
+重构时清掉了最后四处违规用法：悬停链接色、复制按钮悬停的 sky 底白字、顶栏导航的
+82% 白、卡片上的源个数——四处都在 3.4:1 上下。
 
-### 四个已踩过的坑
+### 主题三态
 
-1. **CSS 特异性互相抵消**：`.cmd pre` 是 (0,1,1)，而 `.pre--block` 只有 (0,1,0)——
-   后者会被前者压掉，写了等于没写。修饰 `pre` 的类必须用 `.cmd pre.pre--block`
-   这种同强度选择器。
-2. **命令块竖排时 `align-items` 必须改回 `stretch`**。窄屏把 `.cmd` 改成
-   `flex-direction: column` 后交叉轴变为水平，若保持 `flex-start`，`pre` 会撑到内容宽
-   而非容器宽，再被 `.cmd` 的 `overflow: hidden` 裁掉——长行直接读不到，
-   且内部滚动条也够不着。这条在媒体查询里注了原因，改动窄屏样式时别删。
-3. **`<noscript>` 里的 `<style>` 必须加 `is:inline`**。否则 Astro 会把它当组件样式处理，
-   并把标签内容原样吐成字面量（实测产物里出现过 `{'.panel[hidden]...'}`），
-   规则完全不生效——无 JS 降级会静默失效。
-4. **空字符串属性不会被省略**：`data-version={''}` 产出的是无值的 `data-version`，
-   `data-version={null}` 也一样；只有 `{值 || undefined}` 才整个不输出。
-   所以脚本读取一律写成 `panel.dataset.version ?? ''`，属性缺失与属性无值都能兜住。
+`data-theme`（`light` / `dark`，无属性即跟随系统）加 localStorage。两段脚本：
+`<head>` 里一段**内联**防闪脚本（首帧前落定，`is:inline` 不能省），主脚本里只回填与切换。
+JS 关掉时退化成跟随系统。
+
+### Tailwind 的层序：**对 !important 声明，层序先于特指度**
+
+重构时踩到的新坑，比老坑更隐蔽：
+
+- 未分层的**正常**声明优先于任何 `@layer` 里的正常声明——这就是迁移期必须把旧 CSS
+  包进 `@layer components` 的原因，也是 `[data-pickers]{display:none}` 留在无层的原因
+  （它要压过工具类给的 `display:flex`）。
+- `!important` 声明**反过来**：层越靠前越优先，无层的 `!important` 反而最低。
+  preflight 的 `[hidden]:where(...){display:none !important}` 在 base 层，所以无 JS 降级
+  那条 `[data-panel][hidden]{display:block !important}` 必须写进 `@layer base` 才赢得了
+  （同层之内才比特指度，我们多一个 `[data-panel]`）。两条规则分属不同层，
+  见 `[id].astro` 里的 `<noscript>` 注释。
+
+### 三个仍然作数的老坑
+
+1. **空字符串属性不会被省略**：`data-version={''}` 产出的是无值的 `data-version`，
+   `{null}` 也一样；只有 `{值 || undefined}` 才整个不输出。
+   脚本一律 `panel.dataset.version ?? ''`，属性缺失与属性无值都能兜住。
+2. **`<noscript>` 里的 `<style>` 必须加 `is:inline`**：否则 Astro 把它当组件样式处理、
+   把内容原样吐成字面量（实测产物里出现过 `{'.panel[hidden]...'}`），规则静默失效。
+3. **竖向排列时 `align-items` 必须 `stretch`**：交叉轴变水平后 `flex-start` 会让 `pre`
+   撑到内容宽度（而非容器宽），被 `overflow:hidden` 裁掉——长行读不到、滚动条也够不着。
+   现在写在 `.cmd` 的窄屏分支里，改窄屏样式时别动。
+
+（老的「`.cmd pre.pre--block` 特指度互相抵消」那个坑已**结构性消失**：折行策略现在是两条
+互斥的 `@utility`（`code-flow` / `code-flow-block`），同一个 `pre` 上只出现一条；
+而且 utilities 层永远压得住 components 层的 `.cmd pre`，不必再数选择器强度。）
 
 ### 命令块的硬约束
 
@@ -418,12 +479,16 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
 - `pre` 与 `code` 标签之间**不能有换行或缩进**，否则复制出的文本带多余空白
 - 按钮在 **`.cmd` 内部、与 `pre` 并排**（在代码框里，但不进 `pre`、也不绝对定位压在
   `pre` 上）。压在 `pre` 上会遮住长配置行的行尾；并排只是占掉按钮那点宽度。
-  窄屏时整条落到代码下方，见「竖排时 `align-items` 必须改回 `stretch`」那条
+  窄屏时整条落到代码下方，见上面第 3 条
+
+`.cmd` / `.cmd__copy` 是**全站唯一保留的组件类**：它的形态随断点整体翻转（横排 → 竖排、
+按钮从右侧小按钮 → 底部整条），用工具类要堆二十来个断点类，而上面这几条会散进类名里、
+看不见也搜不到。新加 UI 不要照这个模式走——先试工具类。
 
 ### 折行策略按内容区分
 
-- **单行命令**：`white-space: pre-wrap`，允许折行（shell 命令折行不产生歧义）
-- **多行片段**（`.pre--block`，即含 `\n`）：`white-space: pre` + 横向滚动。
+- **单行命令**（`code-flow`）：`white-space: pre-wrap`，允许折行（shell 命令折行不产生歧义）
+- **多行片段**（`code-flow-block`，即含 `\n`）：`white-space: pre` + 横向滚动。
   这类多是配置文件内容（TOML、`sources.list`），**换行本身有语义**，
   窄屏上重新折行会被误读成真的换行
 - **不做限高**：一次只显示一块面板，26 行的 deb822 完整展开比塞进小框里滚动好读
@@ -444,6 +509,25 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
 - 不加载网络字体（中文字体体积违背「轻量」）。Latin 走系统 UI 字体，中文按平台回退
 - 动效只用在与用户操作对应的反馈上（悬停、复制成功），不做进场动画
 
+### 布局
+
+形态是**侧边栏文档站**（对齐 help.mirror.nju.edu.cn，那是 MirrorZ Help）：
+
+- 顶栏（深天蓝，sticky）之下分两栏：左侧「分类 → 工具」目录 256px，右侧内容。
+  `lg`（64rem / 1024px）起才出侧栏——低于它两栏会把命令块挤窄。
+- 内容列上限 60rem（`max-w-content`），外壳上限 80rem（`max-w-page`）：
+  **外壳变宽、正文本宽不变**，命令的折行行为与改造前逐字一致。
+- 窄屏把目录收进 `<details>`（原生折叠，零新增脚本）。**同一份 `Sidebar` 渲染两处**，
+  所以 **`Sidebar.astro` 里绝不能出现 id**：两份重复的 id 会让 `getElementById` 只返回
+  第一份，复制按钮可能指向被 `display:none` 藏起来的那份，复制出错内容。
+  产物检查：`grep -o 'id="[^"]*"' <page> | sort | uniq -d` 必须为空。
+- 侧栏只在 `/mirrors/` 之下出现（首页是入口页，没有目录可列）。
+- **顶栏高度只有一个来源 `--band-h`**：sticky 侧栏的 `top`、锚点的 `scroll-margin`
+  都从它取，别再往别处写死数字。
+- `<main>` 必须有 `min-w-0`：多行命令块会横向滚动，没有它整行被撑宽、页面出横向滚动条。
+- 目录只在镜像源板块出现；`<details>` 与 `<aside>` 两份实例靠 `lg:hidden` /
+  `hidden lg:block` 切换，只有一份在无障碍树里。
+
 ### 交互约定
 
 - **复制成功与失败必须分开提示**。剪贴板不可用时退回隐藏 `textarea` +
@@ -459,4 +543,10 @@ curl -s -o /dev/null -w '%{http_code}\n' https://vansour.github.io/mirrors/
   后退直接离开本页。坏 hash 回退到页面默认项，不是下拉里的第一项（见「路由」一节）
 - **无 JS 时全部面板可见**：SSR 只给非当前项加 `hidden`（避免刷新时闪一下），
   再由 `<noscript>` 里的 `is:inline` 样式放开、把两个下拉藏掉。
-  改动面板渲染时别破坏这条
+  **面板显隐只能用 `hidden` 属性**（不是 `hidden` 工具类），且那两条 noscript 规则
+  分属不同层——理由见第四节「Tailwind 的层序」。改这块之前先读那段
+- **`<noscript>` 里的选择器用契约属性而不是类名**（`[data-panel][hidden]`、
+  `[data-pickers]`）：类名会改，数据属性是脚本契约，不会
+- 顶栏的主题选择器也是**原生 `<select>`**（System / Light / Dark），
+  与两个数据下拉同一套做法
+- toast 用 `data-show` 属性显隐（不是类名），成功/失败仍靠 `data-kind` 区分

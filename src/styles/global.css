@@ -165,383 +165,90 @@
    -------------------------------------------------------------------------- */
 
 @layer components {
-  h1 {
-    font-size: 1.7rem;
-    font-weight: 680;
-    letter-spacing: -0.025em;
-    margin: 0 0 0.4rem;
-  }
-
-  .lede {
-    color: var(--muted);
-    max-width: 42rem;
-    margin: 0 0 1.75rem;
-  }
-
-  /* 面包屑 */
-
-  .crumbs {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem;
-    margin-bottom: 0.9rem;
-    font-size: 0.8rem;
-    color: var(--muted);
-  }
-
-  .crumbs__sep {
-    opacity: 0.55;
-  }
-
-  /* 首页导航 */
-
-  .links {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: 0.7rem;
-    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-  }
-
-  .links__item {
-    display: block;
-    padding: 0.95rem 1.1rem;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--r);
-    color: var(--ink);
-    transition: border-color 0.15s ease;
-  }
-
-  .links__item:hover {
-    border-color: var(--sky);
-    color: var(--ink);
-    text-decoration: none;
-  }
-
-  .links__name {
-    display: block;
-    font-weight: 640;
-    margin-bottom: 0.2rem;
-  }
-
-  .links__desc {
-    display: block;
-    color: var(--muted);
-    font-size: 0.85rem;
-    line-height: 1.55;
-  }
-
-  /* 索引页：按分类的工具卡片 */
-
-  .cat {
-    margin-top: 2rem;
-  }
-
-  .cat__title {
-    font-size: 0.95rem;
-    font-weight: 640;
-    color: var(--ink-soft);
-    margin: 0 0 0.85rem;
-    scroll-margin-top: 4.25rem;
-  }
-
-  .cat__grid {
-    display: grid;
-    gap: 0.7rem;
-    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-  }
-
-  .tool-card {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    padding: 0.75rem 0.9rem;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--r);
-    box-shadow: var(--shadow);
-    color: var(--ink);
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
-  }
-
-  .tool-card:hover {
-    color: var(--ink);
-    text-decoration: none;
-    border-color: var(--sky);
-    box-shadow: var(--shadow-hover);
-  }
-
-  .tool-card__icon {
-    flex: 0 0 auto;
-    width: 2.5rem;
-    height: 2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    background: var(--ground);
-    border-radius: var(--r-sm);
-  }
-
-  .tool-card__text {
-    min-width: 0;
-    flex: 1 1 auto;
-  }
-
-  .tool-card__name {
-    display: block;
-    font-weight: 640;
-    font-size: 0.9rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .tool-card__tagline {
-    display: block;
-    font-size: 0.78rem;
-    color: var(--muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .tool-card__count {
-    flex: 0 0 auto;
-    font-size: 0.78rem;
-    color: var(--sky);
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* 工具页标题 */
-
-  .tool-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .tool-title__icon {
-    font-size: 1.5rem;
-  }
-
-  /* 版本 / 来源两个下拉。用原生 select，键盘、读屏、首字母跳转都由浏览器提供，
-     这里只做样式对齐，不自己造控件 */
-
-  .pickers {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 1.25rem;
-    margin-bottom: 1rem;
-  }
-
-  .picker {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    min-width: 0;
-  }
-
-  .picker__label {
-    font-size: 0.83rem;
-    color: var(--muted);
-  }
-
-  .picker__select {
-    font: inherit;
-    font-size: 0.83rem;
-    max-width: 100%;
-    padding: 0.3rem 0.5rem;
-    color: var(--ink);
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--r-sm);
-    cursor: pointer;
-    transition: border-color 0.15s ease;
-  }
-
-  .picker__select:hover {
-    border-color: var(--sky);
-  }
-
-  /* 来源面板 */
-
-  .panel {
-    margin-bottom: 0.8rem;
-    padding: 0.95rem 1rem;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--r);
-    box-shadow: var(--shadow);
-  }
-
-  /* 状态不再显示在页面上，只剩这一处痕迹：已停用的源整体淡化。
-     所以 dead / degraded 的源必须靠 note 说清楚，否则读者看不出 */
-  .panel--dead {
-    opacity: 0.68;
-  }
-
-  /* 一块命令 = 可选的 note + 命令块。块与块之间靠这条间距分开 */
-
-  .variant + .variant {
-    margin-top: 1rem;
-  }
-
-  .note {
-    margin: 0 0 0.55rem;
-    font-size: 0.82rem;
-    color: var(--muted);
-    padding-left: 0.6rem;
-    border-left: 2px solid var(--line);
-  }
-
-  /* 命令块。注意——复制读的是 pre 的 textContent，所以任何装饰（左侧色条、按钮）
-     都必须留在 pre 外面，否则会被一起复制走。按钮在 .cmd 内部与 pre 并排：
-     既不在 pre 里，也不绝对定位压在 pre 上（压在行尾会遮住长配置行） */
+  /* 命令块是**全站唯一保留的组件类**：它的形态随断点整体翻转（横排 → 竖排、
+     按钮从右侧小按钮 → 底部整条），用工具类要堆二十来个断点类，而下面这几条
+     硬约束会散进类名里、看不见也搜不到。
+     颜色、字号、折行仍由工具类给（见 CodeBlock.astro），组件类只管「形」。 */
 
   .cmd {
     display: flex;
-    align-items: flex-start;
-    background: var(--sky-soft);
-    border-radius: var(--r-sm);
-    border-left: 3px solid var(--sky);
+    /* 竖排时交叉轴是水平：必须 stretch，否则 pre 撑到内容宽度（而非容器宽度），
+       再被 overflow:hidden 裁掉——长行直接读不到，内部滚动条也够不着。
+       宽屏分支再改回 flex-start（按钮只占自己那点宽度，不拉满整列） */
+    align-items: stretch;
     overflow: hidden;
+    border-radius: var(--r-sm);
   }
 
   .cmd pre {
     flex: 1 1 auto;
+    /* 与 main 的 min-w-0 同一个坑：没有它，多行块的横向内容会把整行撑宽 */
     min-width: 0;
     margin: 0;
-    padding: 0.6rem 0.75rem;
-    background: transparent;
-    font-size: 0.8rem;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
   }
 
-  /* 多行片段多是配置文件内容（TOML、sources.list），换行本身有语义。
-     窄屏上重新折行会让人误读成真的换行，所以改为原样保留 + 横向滚动。
-     单行 shell 命令则允许折行——折了也不产生歧义。
-     .cmd pre 的选择器是 (0,1,1)，这里必须同强度才能覆盖，否则规则被自己的基础样式压掉 */
-  .cmd pre.pre--block {
-    white-space: pre;
-    overflow-wrap: normal;
-    overflow-x: auto;
-  }
-
-  /* 复制按钮：命令块里与 pre 并排的一列，宽度只占按钮本身。
-     窄屏会整条落到代码下方（见文件末尾的媒体查询） */
   .cmd__copy {
     flex: 0 0 auto;
-    align-self: flex-start;
-    margin: 0.5rem 0.5rem 0 0;
-    font: inherit;
-    font-size: 0.75rem;
-    padding: 0.2rem 0.6rem;
-    color: var(--ink-soft);
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--r-sm);
+    align-self: stretch;
     cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease,
-      border-color 0.15s ease;
   }
 
-  .cmd__copy:hover {
-    background: var(--sky);
-    border-color: var(--sky);
-    color: #fff;
+  /* 断点值必须与 --breakpoint-sm 保持一致（那里是 44rem） */
+  @media (min-width: 44rem) {
+    .cmd {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    .cmd pre {
+      padding: 0.6rem 0.75rem;
+    }
+
+    .cmd__copy {
+      align-self: flex-start;
+      margin: 0.5rem 0.5rem 0 0;
+      padding: 0.2rem 0.6rem;
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      background: var(--surface);
+    }
   }
 
-  /* toast：复制反馈。底部居中，成功绿、失败红 */
-
-  .toast {
-    position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    z-index: 999;
-    transform: translate(-50%, 8px);
-    padding: 0.55rem 1.1rem;
-    border-radius: 999px;
-    font-size: 0.83rem;
-    font-weight: 600;
-    color: #fff;
-    background: var(--band);
-    opacity: 0;
-    pointer-events: none;
-    white-space: nowrap;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-  }
-
-  .toast[data-kind="err"] {
-    background: var(--danger);
-  }
-
-  .toast.show {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-
-  /* 空状态 */
-
-  .empty {
-    padding: 1.6rem 1.25rem;
-    border: 1px dashed var(--line);
-    border-radius: var(--r);
-    background: var(--surface);
-    color: var(--muted);
-  }
-
-  .empty p {
-    margin: 0;
-  }
-
-  .empty__hint {
-    margin-top: 0.5rem !important;
-    font-size: 0.82rem;
-  }
-
-  .empty__hint code {
-    font-size: 0.95em;
-  }
-
-  /* 窄屏 */
-
+  /* 窄屏把按钮变成代码下方的一整条：宽度够，手指点得到 */
   @media (max-width: 43.999rem) {
-    .cat__title {
-      scroll-margin-top: 1rem;
-    }
-
-    .tool-card__tagline {
-      /* 窄屏卡片变窄，描述留一行更利落 */
-      white-space: normal;
-    }
-
-    /* 必须把 align-items 改回 stretch：竖向排列后交叉轴变为水平，
-       flex-start 会让 pre 撑到内容宽度（而非容器宽度），再被 .cmd 的
-       overflow:hidden 裁掉——长行会直接读不到，且内部滚动条也够不着 */
     .cmd {
       flex-direction: column;
-      align-items: stretch;
     }
 
     .cmd pre {
       padding: 0.6rem 0.7rem;
     }
 
-    /* 窄屏把按钮变成代码下方的一整条：宽度够，手指点得到 */
     .cmd__copy {
       align-self: stretch;
       margin: 0;
       padding: 0.45rem 0.7rem;
-      border: none;
+      border: 0;
       border-top: 1px solid var(--line);
       border-radius: 0;
       background: transparent;
     }
   }
+}
+
+/* 折行策略：两条互斥的命名词，同一个 pre 上只出现一条（见 CodeBlock.astro）。
+   放在 utilities 层而不是 components 层，是为了让它们与 .cmd pre 的冲突
+   从「比特指度」变成「比层序」——层序永远赢，不需要数选择器强度。
+   单行 shell 命令折行不产生歧义；多行片段（TOML、sources.list）换行本身有语义，
+   窄屏上重新折行会被误读成真的换行，所以原样保留 + 横向滚动。不做限高。 */
+
+@utility code-flow {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@utility code-flow-block {
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
 }

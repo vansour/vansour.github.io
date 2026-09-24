@@ -22,17 +22,26 @@ const { docId, versionKey, slug, variants, note, status, active } = Astro.props;
 // getElementById 只返回第一个，复制按钮会复制到另一个版本的命令。
 const blockId = (variantKey: string): string =>
   [docId, versionKey, slug, variantKey].filter(Boolean).join('-');
+
+// 状态只剩「整体淡化」这一处痕迹。必须是查表，不能用 `panel--${status}` 这种插值——
+// Tailwind 扫描源码找类名，拼出来的类名它看不见，样式会静默不生成。
+const TONE: Record<MirrorEntry['status'], string> = {
+  ok: '',
+  degraded: 'opacity-70',
+  dead: 'opacity-70',
+};
 ---
 
 <div
-  class:list={['panel', `panel--${status}`]}
+  class:list={['mb-3 rounded-card border border-line bg-surface p-4 shadow-card', TONE[status]]}
   data-panel
   {/* 无版本的工具不写这个属性，而不是写一个空值——脚本那边用 `?? ''` 兜底 */}
   data-version={versionKey || undefined}
   data-slug={slug}
   hidden={!active}
 >
-  {note && <p class="note">{note}</p>}
-
-  {variants.map((v) => <CodeBlock id={blockId(v.key)} variant={v} />)}
+  <div class="space-y-4">
+    {note && <p class="border-l-2 border-line pl-2.5 text-[0.82rem] text-muted">{note}</p>}
+    {variants.map((v) => <CodeBlock id={blockId(v.key)} variant={v} />)}
+  </div>
 </div>

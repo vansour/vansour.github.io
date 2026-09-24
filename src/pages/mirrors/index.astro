@@ -1,22 +1,15 @@
 ---
 import Base from '../../layouts/Base.astro';
-import ToolCard from '../../components/ToolCard.astro';
-import { docs, byCategory, CATEGORY_LABEL, latestVerified } from '../../data/index';
-import { CATEGORY } from '../../data/schema';
-
-const sections = CATEGORY.map((key) => ({
-  key,
-  label: CATEGORY_LABEL[key],
-  items: byCategory.get(key) ?? [],
-})).filter((section) => section.items.length > 0);
+import NavCard from '../../components/NavCard.astro';
+import { docs, sections, latestVerified } from '../../data/index';
 ---
 
 <Base
   title="国内镜像源 · vansour"
   description="各语言、系统包管理器的国内镜像源，附可直接粘贴的配置命令与核实日期。"
 >
-  <h1>国内镜像源</h1>
-  <p class="lede">
+  <h1 class="mb-1.5 text-[1.7rem] font-bold tracking-tight">国内镜像源</h1>
+  <p class="mb-7 max-w-[42rem] text-muted">
     共 {docs.length} 个工具{
       latestVerified && (
         <>
@@ -28,19 +21,25 @@ const sections = CATEGORY.map((key) => ({
 
   {
     docs.length === 0 ? (
-      <div class="empty">
-        <p>还没有收录内容。</p>
-        <p class="empty__hint">
+      <div class="rounded-card border border-dashed border-line bg-surface px-5 py-6 text-muted">
+        <p class="m-0">还没有收录内容。</p>
+        <p class="m-0 mt-2 text-[0.82rem]">
           在 <code>src/data/mirrors/</code> 下新增一个 JSON 文件即可，格式见该目录 README。
         </p>
       </div>
     ) : (
       sections.map((section) => (
-        <section class="cat">
-          <h2 class="cat__title">{section.label}</h2>
-          <div class="cat__grid">
+        <section class="mt-8 first:mt-0">
+          <h2 class="m-0 mb-3.5 text-[0.95rem] font-semibold text-ink-soft">{section.label}</h2>
+          <div class="grid gap-3 sm:grid-cols-[repeat(auto-fill,minmax(15rem,1fr))]">
             {section.items.map((doc) => (
-              <ToolCard doc={doc} />
+              <NavCard
+                href={`/mirrors/${doc.id}/`}
+                icon={doc.icon}
+                name={doc.name}
+                desc={doc.tagline}
+                count={doc.mirrors.length}
+              />
             ))}
           </div>
         </section>

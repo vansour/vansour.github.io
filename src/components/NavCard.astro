@@ -1,0 +1,33 @@
+---
+/**
+ * 导航卡片。首页（板块入口）与索引页（工具入口）共用一套，
+ * 免得同样的视觉有两份类名各自过期。
+ *
+ * 里面的元素全是 <span>：卡片本体是 <a>，HTML 的内容模型不允许块级元素进去。
+ */
+interface Props {
+  href: string;
+  icon: string;
+  name: string;
+  desc: string;
+  /** 右侧的数字，索引页显示源个数；首页不传就不渲染 */
+  count?: number;
+}
+
+const { href, icon, name, desc, count } = Astro.props;
+---
+
+<a
+  href={href}
+  class="flex items-center gap-3 rounded-card border border-line bg-surface px-3.5 py-3 text-ink no-underline shadow-card transition hover:border-sky hover:text-ink hover:no-underline hover:shadow-card-hover"
+>
+  <span class="flex size-10 shrink-0 items-center justify-center rounded-ctl bg-ground text-[1.25rem]" aria-hidden="true"
+    >{icon}</span
+  >
+  <span class="min-w-0 flex-1">
+    <span class="block truncate text-[0.9rem] font-semibold">{name}</span>
+    {/* 描述留两行：一行会把首页那条较长的话截掉半句，而卡片之间仍能对齐 */}
+    <span class="line-clamp-2 text-[0.78rem] text-muted">{desc}</span>
+  </span>
+  {count !== undefined && <span class="shrink-0 text-[0.78rem] text-muted tabular-nums">{count}</span>}
+</a>

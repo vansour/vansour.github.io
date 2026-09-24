@@ -9,19 +9,24 @@ interface Props {
 const { id, variant } = Astro.props;
 
 // variant.lang / variant.label 都不渲染（schema 里仍必填，留作数据自述）
+// 含换行的当配置片段处理，折行策略见 global.css 的 code-flow / code-flow-block
+const isBlock = variant.code.includes('\n');
 ---
 
-<div class="variant">
-  {variant.note && <p class="note">{variant.note}</p>}
+<div>
+  {variant.note && <p class="mb-2.5 border-l-2 border-line pl-2.5 text-[0.82rem] text-muted">{variant.note}</p>}
 
   {/* 复制按钮读的是 pre 的 textContent，所以任何装饰都必须在 pre 外面。
       按钮在 .cmd 内部、与 pre 并排——既不进 pre（会被一起复制走），
       也不绝对定位压在 pre 上（会遮住长配置行的行尾）。
       pre 与 code 之间不能有换行，否则复制出的文本会带多余空白 */}
-  <div class="cmd">
+  <div class="cmd border-l-[3px] border-sky bg-sky-soft">
     <pre
       id={id}
-      class:list={variant.code.includes('\n') ? 'pre--block' : ''}><code>{variant.code}</code></pre>
-    <button type="button" class="cmd__copy" data-copy-target={id}>复制</button>
+      class:list={['font-mono text-[0.8rem] leading-[1.6]', isBlock ? 'code-flow-block' : 'code-flow']}><code>{variant.code}</code></pre>
+    <button
+      type="button"
+      class="cmd__copy text-[0.75rem] text-ink-soft transition-colors hover:border-ink-soft hover:bg-ink-soft hover:text-inverse"
+      data-copy-target={id}>复制</button>
   </div>
 </div>
