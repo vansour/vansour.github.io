@@ -17,16 +17,6 @@
   ],
   "mirrors": [
     {
-      "station": "清华大学开源软件镜像站",
-      "vars": {
-        "index": "https://mirrors.tuna.tsinghua.edu.cn/crates.io-index"
-      },
-      "doc": "https://mirrors.tuna.tsinghua.edu.cn/help/crates.io-index/",
-      "status": "degraded",
-      "verified_at": "2026-09-24",
-      "note": "只镜像了索引：config.json 里的 dl 指向官方 static.crates.io，.crate 包仍从国外取，下载速度取决于国际出口"
-    },
-    {
       "station": "中国科学技术大学开源软件镜像",
       "vars": {
         "index": "https://mirrors.ustc.edu.cn/crates.io-index"

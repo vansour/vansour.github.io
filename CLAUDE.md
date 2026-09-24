@@ -319,9 +319,10 @@ CI 用的是 `npm ci`，lockfile 与 package.json 不一致会直接失败。注
 - **aliyun 的 rustup 停更**：stable 只到 Rust 1.96.0（2026-05-28 的清单）、rustup 自身
   1.29.0，1.98.1 / 1.29.1 的文件 404，标 `degraded`。其余五家都是 1.98.1。
   它的 crates 索引是新的（tokio 与别家同步），故两页状态不同。
-- **TUNA 的 crates 只镜像索引**：`config.json` 里的 `dl` 指向官方 `static.crates.io`，
-  .crate 包仍从国外取（`/crates.io/api/v1/crates/...` 是 404，它确实不存包），
-  标 `degraded` 并在 note 写明。各源的 `dl` 由各自 config.json 决定：ustc 是
+- **TUNA 的 crates 只镜像索引，2026-09-24 已移除，不要再加回来**：它的 `config.json` 里
+  `dl` 指向官方 `static.crates.io`，.crate 包仍从国外取（`/crates.io/api/v1/crates/...`
+  是 404，它确实不存包）——索引在国内、包在国外，读者以为快其实没快。
+  各源的 `dl` 由各自 config.json 决定：ustc 是
   `.../crates.io/api/v1/crates`、aliyun 是 `.../crates/api/v1/crates`、nju 是
   `mirror.nju.edu.cn/crates.io/crates/{crate}/{crate}-{version}.crate`
   （**dl 主机是 mirror.nju.edu.cn，与索引所在的 mirrors.nju.edu.cn 不是一个域名**）、
