@@ -100,10 +100,6 @@ export const boards = [
   { href: '/dns/', icon: '🌐', name: '公共 DNS', desc: '国内外公共 DNS 解析服务：普通 / DoT / DoH 三种协议的地址。' },
 ] as const;
 
-/** 全站最近一次核实日期，用于索引页与工具页展示数据新鲜度 */
-export const latestVerified: string | null =
-  docs.flatMap((d) => d.mirrors.map((m) => m.verified_at)).sort().at(-1) ?? null;
-
 export { CATEGORY_LABEL, REGION_LABEL } from './schema';
 export type {
   MirrorDoc,

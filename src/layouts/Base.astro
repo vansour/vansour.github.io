@@ -7,9 +7,15 @@ import { isSection } from '../lib/nav';
 interface Props {
   title: string;
   description?: string;
+  /**
+   * 内容列放开到外壳宽度（80rem）。只给首页那种卡片网格用；
+   * 工具页一律压在 60rem——**包括没有侧栏的**（如 /dns/），
+   * 否则「外壳变宽、正文本宽不变」就不成立了，命令的折行会跟着板块变。
+   */
+  wide?: boolean;
 }
 
-const { title, description = '个人导航页' } = Astro.props;
+const { title, description = '个人导航页', wide = false } = Astro.props;
 
 const path = Astro.url.pathname;
 // 顶栏就是「各板块 + 首页」，板块清单在数据层，加一个板块不用改这里
@@ -58,7 +64,7 @@ const sectionCurrent = (href: string) => (isSection(path, href) ? 'page' : undef
       >
         <a
           href="/"
-          class="text-[1.05rem] font-semibold tracking-tight text-inverse hover:text-inverse hover:no-underline hover:opacity-85"
+          class="text-[1.05rem] font-semibold tracking-tight text-inverse hover:underline"
           >vansour</a
         >
 
@@ -68,7 +74,7 @@ const sectionCurrent = (href: string) => (isSection(path, href) ? 'page' : undef
               <a
                 href={item.href}
                 aria-current={sectionCurrent(item.href)}
-                class="border-b-2 border-transparent py-0.5 text-inverse/80 hover:text-inverse hover:no-underline aria-[current=page]:border-inverse/70 aria-[current=page]:text-inverse"
+                class="border-b-2 border-transparent py-0.5 text-inverse hover:underline aria-[current=page]:border-inverse aria-[current=page]:hover:no-underline"
               >
                 {item.label}
               </a>
@@ -116,7 +122,10 @@ const sectionCurrent = (href: string) => (isSection(path, href) ? 'page' : undef
       }
 
       {/* min-w-0 是硬要求：多行命令块会横向滚动，没有它整行会被撑宽、页面出横向滚动条 */}
-      <main id="content" class:list={['min-w-0', withSidebar ? 'max-w-content flex-1 py-6 sm:py-8' : 'flex-1 py-8 sm:py-10']}>
+      <main
+        id="content"
+        class:list={['min-w-0 flex-1', wide ? 'py-8 sm:py-10' : 'max-w-content py-6 sm:py-8']}
+      >
         <slot />
       </main>
     </div>
@@ -125,7 +134,7 @@ const sectionCurrent = (href: string) => (isSection(path, href) ? 'page' : undef
         显隐用 data-show 属性而不是类名，省得为它单留一条组件样式 */}
     <div
       id="toast"
-      class="pointer-events-none fixed bottom-8 left-1/2 z-50 -translate-x-1/2 translate-y-2 rounded-full bg-band px-4 py-2 text-[0.83rem] font-semibold whitespace-nowrap text-inverse opacity-0 transition duration-200 data-show:translate-y-0 data-show:opacity-100 data-[kind=err]:bg-danger"
+      class="pointer-events-none fixed bottom-8 left-1/2 z-50 -translate-x-1/2 translate-y-2 rounded-full bg-band px-4 py-2 text-[0.83rem] font-semibold whitespace-nowrap text-inverse opacity-0 transition duration-200 data-show:translate-y-0 data-show:opacity-100 data-[kind=err]:bg-danger data-[kind=err]:text-on-danger"
       role="status"
       aria-live="polite"></div>
 
@@ -211,11 +220,14 @@ const sectionCurrent = (href: string) => (isSection(path, href) ? 'page' : undef
         const defaultSource = sourceSel.value;
 
         const render = (): void => {
-          const version = versionSel?.value ?? '';
+          // null = 本页没有版本下拉：没有版本维度的工具（pip、DNS）与只有一个版本的工具
+          // 都是这样。**不能拿空串去比 data-version**——后者面板上写着版本号，
+          // 一比就全判成不匹配，一打开带 hash 的链接或动一下来源，整页命令块全被藏起来
+          const version = versionSel?.value ?? null;
           const slug = sourceSel.value;
           for (const panel of panels) {
-            // 无版本的工具没有版本下拉，面板上可能连 data-version 都没有
-            panel.hidden = !((panel.dataset.version ?? '') === version && panel.dataset.slug === slug);
+            const sameVersion = version === null || (panel.dataset.version ?? '') === version;
+            panel.hidden = !(sameVersion && panel.dataset.slug === slug);
           }
         };
 
@@ -228,7 +240,14 @@ const sectionCurrent = (href: string) => (isSection(path, href) ? 'page' : undef
 
         /** 深链：#<版本key>/<源slug>；无版本的工具是 #<源slug> */
         const applyHash = (): void => {
-          const hash = decodeURIComponent(location.hash.slice(1));
+          // 坏转义（如 #%zz）会让 decodeURIComponent 抛异常，而这个异常会把本模块
+          // 剩下的代码一起带走（包括后面的主题切换）。认不出来就当没有 hash
+          let hash: string;
+          try {
+            hash = decodeURIComponent(location.hash.slice(1));
+          } catch {
+            hash = '';
+          }
           if (!hash) return;
           const [first, second] = hash.split('/');
           const hasVersion = second !== undefined;

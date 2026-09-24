@@ -1,26 +1,22 @@
 ---
 import Base from '../../layouts/Base.astro';
 import NavCard from '../../components/NavCard.astro';
-import { docs, sections, latestVerified } from '../../data/index';
+import { sections } from '../../data/index';
+
+// 卡片与空态一律走 sections（**只含本板块的工具**）。
+// 别用 docs：那是全站工具，会把 /dns/ 这类别的板块的工具算进来。
+// 第一段的 first:mt-7（28px）与首页 h1 → 正文那段间距对齐——没有那行说明文字之后，
+// 页面上只剩 h1，间隔只能由段落自己给
 ---
 
 <Base
   title="国内镜像源 · vansour"
-  description="各语言、系统包管理器的国内镜像源，附可直接粘贴的配置命令与核实日期。"
+  description="各语言、系统包管理器的国内镜像源，附可直接粘贴的配置命令。"
 >
   <h1 class="mb-1.5 text-[1.7rem] font-bold tracking-tight">国内镜像源</h1>
-  <p class="mb-7 max-w-[42rem] text-muted">
-    共 {docs.length} 个工具{
-      latestVerified && (
-        <>
-          ，数据核实于 <time datetime={latestVerified}>{latestVerified}</time>
-        </>
-      )
-    }。
-  </p>
 
   {
-    docs.length === 0 ? (
+    sections.length === 0 ? (
       <div class="rounded-card border border-dashed border-line bg-surface px-5 py-6 text-muted">
         <p class="m-0">还没有收录内容。</p>
         <p class="m-0 mt-2 text-[0.82rem]">
@@ -29,7 +25,7 @@ import { docs, sections, latestVerified } from '../../data/index';
       </div>
     ) : (
       sections.map((section) => (
-        <section class="mt-8 first:mt-0">
+        <section class="mt-8 first:mt-7">
           <h2 class="m-0 mb-3.5 text-[0.95rem] font-semibold text-ink-soft">{section.label}</h2>
           <div class="grid gap-3 sm:grid-cols-[repeat(auto-fill,minmax(15rem,1fr))]">
             {section.items.map((doc) => (

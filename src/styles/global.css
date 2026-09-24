@@ -34,7 +34,13 @@
   --surface: light-dark(#ffffff, #0f2836); /* 内容面 */
   --line: light-dark(#c7e0ef, #1b4155); /* 分隔线 */
 
-  --danger: light-dark(#b3261e, #f2836f); /* 复制失败 */
+  --danger: light-dark(#b3261e, #f2836f); /* 复制失败。这是**文字色**：暗色下是浅色 */
+
+  /* 「落在某个底色上的文字」各自成对：底色会翻转，文字就得跟着翻。
+     只写 text-inverse（固定 #fff）的话，暗色下底色变浅、白字就压不住了
+     （实测复制按钮悬停 1.59:1、错误 toast 2.54:1）。 */
+  --on-ink-soft: light-dark(#ffffff, #0b1f2b); /* 在 --ink-soft 底上：7.85:1 / 11.40:1 */
+  --on-danger: light-dark(#ffffff, #3a0d07); /* 在 --danger 底上：6.54:1 / 6.65:1 */
 
   /* 圆角向参考站靠拢：卡片 16px，按钮 6px，chip 与 toast 胶囊 */
   --r: 16px;
@@ -84,6 +90,8 @@
   --color-surface: var(--surface);
   --color-line: var(--line);
   --color-danger: var(--danger);
+  --color-on-ink-soft: var(--on-ink-soft);
+  --color-on-danger: var(--on-danger);
 
   --shadow-card: var(--shadow);
   --shadow-card-hover: var(--shadow-hover);

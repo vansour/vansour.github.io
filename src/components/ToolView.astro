@@ -58,6 +58,9 @@ const selectClass =
     两个下拉都是纯前端筛选，所有组合的面板都已在 HTML 里，JS 只切 hidden */}
 <div class="mb-5 flex flex-wrap gap-x-5 gap-y-3" data-pickers>
   {
+    // 只有一个版本的工具也不出下拉（一个选项的下拉没有意义，深链退化成 #<源slug>）。
+    // 于是「页面上没有版本下拉」有两种含义，脚本只按「有没有这个 select」判，
+    // 不看面板上写没写 data-version——见 Base.astro 里 render() 的注释
     doc.versions.length > 1 && (
       <label class="flex min-w-0 items-center gap-2">
         <span class="text-[0.83rem] text-muted">版本</span>
