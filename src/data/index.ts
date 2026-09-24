@@ -1,4 +1,4 @@
-import { mirrorDoc, type MirrorDoc } from './schema';
+import { mirrorDoc, CATEGORY, CATEGORY_LABEL, type MirrorDoc } from './schema';
 import { resolveDoc, formatResolveIssues, type ResolveIssue } from './resolve';
 
 /**
@@ -71,6 +71,17 @@ export const byCategory = (() => {
   }
   return groups;
 })();
+
+/**
+ * 按分类切的「分类 → 工具」两级结构，**顺序由 CATEGORY 定义**。
+ * 索引页与侧边栏都用它，避免两处的排序逻辑将来各漂各的。
+ * 空分类不出现。
+ */
+export const sections = CATEGORY.map((key) => ({
+  key,
+  label: CATEGORY_LABEL[key],
+  items: byCategory.get(key) ?? [],
+})).filter((section) => section.items.length > 0);
 
 /** 全站最近一次核实日期，用于索引页与工具页展示数据新鲜度 */
 export const latestVerified: string | null =

@@ -40,6 +40,10 @@
   --r: 16px;
   --r-sm: 6px;
 
+  /* 顶栏高度：sticky 侧栏的偏移量、锚点的 scroll-margin 都从这一处取，
+     免得「顶栏一改高度，别处写死的数字就各自过期」 */
+  --band-h: 3.1rem;
+
   /* 阴影拆成「颜色」与「几何」两半：light-dark() 只认颜色，几何两套一致。
      暗色下今天的模糊半径是 4px / 20px，这里统一成 3px / 18px，肉眼无差 */
   --shade: light-dark(rgba(14, 58, 82, 0.07), rgba(0, 0, 0, 0.5));
@@ -161,69 +165,6 @@
    -------------------------------------------------------------------------- */
 
 @layer components {
-  .wrap {
-    max-width: 60rem;
-    margin-inline: auto;
-    padding-inline: 1.25rem;
-  }
-
-  /* 顶栏 —— 「天」 */
-
-  .band {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--band);
-  }
-
-  .band__inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-    padding-block: 0.7rem;
-  }
-
-  .band__brand {
-    font-size: 1.05rem;
-    font-weight: 650;
-    letter-spacing: -0.02em;
-    color: #fff;
-  }
-
-  .band__brand:hover {
-    color: #fff;
-    text-decoration: none;
-    opacity: 0.85;
-  }
-
-  .band__nav {
-    display: flex;
-    gap: 1.15rem;
-    font-size: 0.88rem;
-  }
-
-  .band__nav a {
-    color: rgba(255, 255, 255, 0.82);
-    padding-block: 0.15rem;
-    border-bottom: 2px solid transparent;
-  }
-
-  .band__nav a:hover {
-    color: #fff;
-    text-decoration: none;
-  }
-
-  .band__nav a[aria-current="page"] {
-    color: #fff;
-    border-bottom-color: rgba(255, 255, 255, 0.7);
-  }
-
-  .page {
-    padding-block: 2.25rem 3rem;
-  }
-
   h1 {
     font-size: 1.7rem;
     font-weight: 680;
@@ -571,10 +512,6 @@
   /* 窄屏 */
 
   @media (max-width: 43.999rem) {
-    .band {
-      position: static;
-    }
-
     .cat__title {
       scroll-margin-top: 1rem;
     }

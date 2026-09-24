@@ -1,0 +1,52 @@
+---
+import { sections } from '../data/index';
+import { isExact } from '../lib/nav';
+
+/**
+ * 镜像源目录：分类 → 工具两级。
+ *
+ * ⚠️ 这个组件在同一页会渲染两份（窄屏 <details> 里一份、桌面 <aside> 里一份），
+ * 所以里面**绝不能出现 id**——两份重复的 id 会让 getElementById 只返回第一份，
+ * 复制按钮就可能指向被 display:none 藏起来的那一份，复制出错内容。
+ * 同理导航用 aria-label 而不是 aria-labelledby + 标题 id。
+ * 产物检查：`grep -o 'id="[^"]*"' | sort | uniq -d` 必须为空。
+ *
+ * 当前页高亮直接挂在 aria-current 上（aria-[current=page]: 变体），
+ * 视觉状态与无障碍状态是同一个属性，不会各说各话。
+ */
+
+const path = Astro.url.pathname;
+
+// 链接一律是工具的 URL（/mirrors/<id>/），深链里的源 slug 与这里无关
+const link =
+  'flex items-center gap-2 rounded-ctl px-2 py-1.5 no-underline hover:bg-sky-soft hover:no-underline aria-[current=page]:bg-sky-soft aria-[current=page]:font-semibold aria-[current=page]:text-ink';
+---
+
+<nav aria-label="镜像源目录" class="text-[0.875rem]">
+  <a href="/mirrors/" aria-current={isExact(path, '/mirrors/') ? 'page' : undefined} class:list={[link, 'font-semibold']}>
+    国内镜像源
+  </a>
+
+  {
+    sections.map((section) => (
+      <div class="mt-4">
+        {/* preflight 把标题重置成 font-size/weight: inherit，字号与字重必须显式给 */}
+        <h2 class="m-0 px-2 text-[0.78rem] font-semibold tracking-wide text-muted">{section.label}</h2>
+        <ul class="m-0 mt-1 list-none p-0">
+          {section.items.map((doc) => (
+            <li>
+              <a
+                href={`/mirrors/${doc.id}/`}
+                aria-current={isExact(path, `/mirrors/${doc.id}/`) ? 'page' : undefined}
+                class={link}
+              >
+                <span aria-hidden="true">{doc.icon}</span>
+                {doc.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</nav>

@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css';
+import Sidebar from '../components/Sidebar.astro';
+import { isSection } from '../lib/nav';
 
 interface Props {
   title: string;
@@ -14,13 +16,11 @@ const nav = [
   { href: '/mirrors/', label: '国内镜像源' },
 ];
 
-// 分段安全：只匹配该段本身或其子路径。
-// 单纯 startsWith 会让 /mirrors-old/ 被误判为「国内镜像源」当前页。
-const isCurrent = (href: string) => {
-  if (href === '/') return path === '/';
-  const prefix = href.endsWith('/') ? href : `${href}/`;
-  return path === href || path.startsWith(prefix);
-};
+// 目录只在镜像源板块出现——首页是入口页，没有目录可列
+const withSidebar = isSection(path, '/mirrors/');
+
+// 顶栏的「国内镜像源」在工具页也要亮：这里要的是「本段及其子路径」，不是「只匹配本页」
+const sectionCurrent = (href: string) => (isSection(path, href) ? 'page' : undefined);
 ---
 
 <!doctype html>
@@ -31,25 +31,95 @@ const isCurrent = (href: string) => {
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    {/* 移动端浏览器把顶栏底色刷到地址栏上；手动选了主题的人会与系统偏好不一致，接受 */}
+    <meta name="theme-color" content="#1c7aa8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#103449" media="(prefers-color-scheme: dark)" />
+    {/* 主题必须在首帧前落定，否则会先闪一帧亮色。所以这段是内联的，不进打包 */}
+    <script is:inline>
+      try {
+        const t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch {
+        /* 隐私模式下 localStorage 会抛异常，忽略即可——退化成跟随系统 */
+      }
+    </script>
   </head>
-  <body>
-    <header class="band">
-      <div class="wrap band__inner">
-        <a class="band__brand" href="/">vansour</a>
-        <nav class="band__nav">
+
+  <body class="min-h-dvh bg-ground text-ink">
+    {/* 侧栏一上，键盘用户要先过十几条链接才能到正文 */}
+    <a
+      href="#content"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-ctl focus:bg-surface focus:px-3 focus:py-1.5 focus:text-ink focus:shadow-card"
+      >跳到内容</a
+    >
+
+    <header class="bg-band sm:sticky sm:top-0 sm:z-30">
+      <div
+        class="mx-auto flex max-w-page flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-2.5 sm:h-(--band-h) sm:flex-nowrap sm:py-0"
+      >
+        <a
+          href="/"
+          class="text-[1.05rem] font-semibold tracking-tight text-inverse hover:text-inverse hover:no-underline hover:opacity-85"
+          >vansour</a
+        >
+
+        <nav class="flex items-center gap-3 text-[0.88rem] sm:gap-4" aria-label="站点">
           {
             nav.map((item) => (
-              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+              <a
+                href={item.href}
+                aria-current={sectionCurrent(item.href)}
+                class="border-b-2 border-transparent py-0.5 text-inverse/80 hover:text-inverse hover:no-underline aria-[current=page]:border-inverse/70 aria-[current=page]:text-inverse"
+              >
                 {item.label}
               </a>
             ))
           }
+
+          {/* 原生 select，与版本/来源两个下拉同一套做法。底色用内容面而不是透明：
+              透明会让展开的选项列表在白底上显示成白字 */}
+          <label class="flex items-center">
+            <span class="sr-only">主题</span>
+            <select
+              data-theme-select
+              class="cursor-pointer rounded-ctl border border-line bg-surface px-1.5 py-0.5 text-[0.78rem] text-ink hover:border-sky"
+            >
+              <option value="system" selected>跟随系统</option>
+              <option value="light">浅色</option>
+              <option value="dark">深色</option>
+            </select>
+          </label>
         </nav>
       </div>
     </header>
 
-    <div class="wrap page">
-      <slot />
+    <div class="mx-auto flex max-w-page flex-col px-5 lg:flex-row lg:gap-10">
+      {
+        withSidebar && (
+          <details class="mt-4 rounded-card border border-line bg-surface lg:hidden">
+            <summary class="cursor-pointer px-4 py-2.5 text-[0.9rem] font-semibold">目录</summary>
+            <div class="border-t border-line px-3 py-3">
+              <Sidebar />
+            </div>
+          </details>
+        )
+      }
+
+      {
+        withSidebar && (
+          <aside class="hidden w-64 shrink-0 lg:block">
+            {/* 只吸在顶栏下面，不吸到视口顶部；自身可滚，长目录不会把页面顶长 */}
+            <div class="sticky top-(--band-h) max-h-[calc(100dvh-var(--band-h)-1.5rem)] overflow-y-auto overscroll-contain py-6">
+              <Sidebar />
+            </div>
+          </aside>
+        )
+      }
+
+      {/* min-w-0 是硬要求：多行命令块会横向滚动，没有它整行会被撑宽、页面出横向滚动条 */}
+      <main id="content" class:list={['min-w-0', withSidebar ? 'max-w-content flex-1 py-6 sm:py-8' : 'flex-1 py-8 sm:py-10']}>
+        <slot />
+      </main>
     </div>
 
     {/* 复制成功与失败都经此提示。aria-live 让屏幕阅读器也能听到 */}
@@ -174,6 +244,40 @@ const isCurrent = (href: string) => {
         window.addEventListener('hashchange', applyHash);
 
         applyHash();
+      }
+
+      /* ---------------------------------------------------------------- *
+       * 主题三态
+       * 亮暗的色值切换全在 CSS 那边（light-dark() 认 color-scheme），
+       * 这里只负责把选择落到 documentElement 与 localStorage 上。
+       * 首帧之前那一步在 <head> 的内联脚本里，这段只管之后的切换与回填。
+       * ---------------------------------------------------------------- */
+
+      const themeSel = document.querySelector<HTMLSelectElement>('[data-theme-select]');
+
+      if (themeSel) {
+        let stored: string | null = null;
+        try {
+          stored = localStorage.getItem('theme');
+        } catch {
+          stored = null;
+        }
+        // SSR 里默认选中的是「跟随系统」，与实际存的选择同步一次
+        themeSel.value = stored === 'light' || stored === 'dark' ? stored : 'system';
+
+        themeSel.addEventListener('change', () => {
+          const value = themeSel.value;
+          if (value === 'system') {
+            document.documentElement.removeAttribute('data-theme');
+          } else {
+            document.documentElement.dataset.theme = value;
+          }
+          try {
+            localStorage.setItem('theme', value);
+          } catch {
+            /* 存不了就只作用于本次会话 */
+          }
+        });
       }
     </script>
   </body>
