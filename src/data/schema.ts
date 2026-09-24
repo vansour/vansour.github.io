@@ -31,8 +31,12 @@ export const VARIANT_KEY = /^[a-z][a-z0-9-]*$/;
  * 和命令块 DOM id 的一段，若允许连字符，「a-b」+「c」与「a」+「b-c」会拼出同一个 id。
  */
 export const VERSION_KEY = /^[a-z0-9]+$/;
-/** 源的归属分组，决定来源下拉里的 optgroup */
-export const REGION = ['official', 'cn'] as const;
+/**
+ * 源的归属分组，决定来源下拉里的 optgroup。
+ * global 是给 DNS 这类「服务本身就是源」的工具用的：Cloudflare 与 Google 的
+ * 公共解析没有国内镜像可言，它们就是各自服务的官方入口。镜像类工具仍然不收国外源。
+ */
+export const REGION = ['official', 'cn', 'global'] as const;
 /** 由 resolve.ts 自动推导、不必也不该写进 vars 的变量（写进 vars 则视为显式覆盖） */
 export const DERIVED_VARS = ['host'] as const;
 /** 不能用作工具 id：/mirrors/index/ 会与索引页混淆 */
@@ -151,10 +155,14 @@ export const mirrorDoc = z
      */
     note: z.string().optional(),
     /**
-     * 哪个变量是这个工具的「主地址」：页面展示的 endpoint、以及 {host}，都由它推导。
+     * 哪个变量是这个工具的「主地址」：endpoint 与 {host} 都由它推导，
      * 这样就不存在「展示地址与命令里的地址不一致」这一整类 bug。
+     *
+     * **没有单一主地址的工具可以省略**（如公共 DNS：每个协议一个地址，
+     * 普通 DNS 还是裸 IP，过不了下面那条「必须是 http(s) 字面 URL」的校验）。
+     * 省略后不能用 {host}——那会报明确的错，不是静默失效。
      */
-    endpoint_var: z.string().regex(VAR_NAME, 'endpoint_var 必须是一个变量名'),
+    endpoint_var: z.string().regex(VAR_NAME, 'endpoint_var 必须是一个变量名').optional(),
     /**
      * 工具级变量默认值：每个源都自动带上，源级 vars 同名键可覆盖。
      * 用来表达「各源一致、只有个别源例外」的推导，如 Debian 的 sec = "{deb}-security"。
@@ -233,26 +241,31 @@ export const mirrorDoc = z
     };
 
     doc.mirrors.forEach((m, i) => {
-      const raw = m.vars[doc.endpoint_var] ?? doc.var_defaults?.[doc.endpoint_var];
+      // 没有 endpoint_var 的工具（公共 DNS 那类）没有主地址可查，整段跳过
+      const endpointVar = doc.endpoint_var;
 
-      // 主地址必须在每个源上都有值，否则 {host} 推不出来
-      if (raw === undefined) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['mirrors', i, 'vars'],
-          message: `缺少 endpoint_var「${doc.endpoint_var}」：{host} 要从它推导`,
-        });
-      } else {
-        checkEndpoint(raw, ['mirrors', i, 'vars', doc.endpoint_var], '主地址');
-      }
+      if (endpointVar) {
+        const raw = m.vars[endpointVar] ?? doc.var_defaults?.[endpointVar];
 
-      // 版本级也能覆盖 endpoint_var，覆盖了就同样要是字面 URL
-      versions.forEach((v, vi) => {
-        const over = v.vars?.[doc.endpoint_var];
-        if (over !== undefined) {
-          checkEndpoint(over, ['versions', vi, 'vars', doc.endpoint_var], `版本「${v.label}」的主地址`);
+        // 主地址必须在每个源上都有值，否则 {host} 推不出来
+        if (raw === undefined) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['mirrors', i, 'vars'],
+            message: `缺少 endpoint_var「${endpointVar}」：{host} 要从它推导`,
+          });
+        } else {
+          checkEndpoint(raw, ['mirrors', i, 'vars', endpointVar], '主地址');
         }
-      });
+
+        // 版本级也能覆盖 endpoint_var，覆盖了就同样要是字面 URL
+        versions.forEach((v, vi) => {
+          const over = v.vars?.[endpointVar];
+          if (over !== undefined) {
+            checkEndpoint(over, ['versions', vi, 'vars', endpointVar], `版本「${v.label}」的主地址`);
+          }
+        });
+      }
 
       // skip_variants 里不能有拼错的 key，否则会静默地什么都没跳过
       m.skip_variants?.forEach((k, j) => {
@@ -328,6 +341,7 @@ export interface MirrorDoc extends Omit<MirrorDocInput, 'mirrors' | 'versions'> 
 export const REGION_LABEL: Record<(typeof REGION)[number], string> = {
   official: '官方',
   cn: '国内',
+  global: '国外',
 };
 
 export const CATEGORY_LABEL: Record<(typeof CATEGORY)[number], string> = {

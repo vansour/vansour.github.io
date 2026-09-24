@@ -245,6 +245,14 @@ function buildScope(
         });
       }
       text = r.text;
+    } else if (tool.endpoint_var === undefined) {
+      // 没有主地址的工具（公共 DNS 那类）推不出 {host}——报明确错误，不静默给空串
+      ctx.push({
+        kind: 'endpoint',
+        detail: '{host} 需要主地址，但这个工具没有定义 endpoint_var',
+        hint: '要么给该工具补上 endpoint_var，要么不要在模板里用 {host}',
+      });
+      text = '';
     } else {
       // {host}：从 endpoint_var 指向的主地址推导
       // 例：https://mirrors.ustc.edu.cn/debian → mirrors.ustc.edu.cn
@@ -266,7 +274,7 @@ function buildScope(
     return text;
   };
 
-  const endpoint = lookup(tool.endpoint_var) ?? '';
+  const endpoint = tool.endpoint_var ? (lookup(tool.endpoint_var) ?? '') : '';
   return { values, endpoint, lookup };
 }
 

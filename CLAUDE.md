@@ -340,6 +340,38 @@ CI 用的是 `npm ci`，lockfile 与 package.json 不一致会直接失败。注
   判成「有」。要连 `content_type` 与字节数一起看，或直接解析内容。同理，路径拼空会落到
   **目录列表**也返回 200——测单个文件时别让路径为空。
 
+#### 公共 DNS（2026-09-24 核实）
+
+- **这个工具没有 `endpoint_var`，是有意的**：DNS 每个协议一个地址，普通 DNS 还是裸 IP
+  （`119.29.29.29`），过不了「主地址必须是 http(s) 字面 URL」那条校验；纯主机名同样不行。
+  于是 `endpoint_var` 改成可选（`schema.ts`），省略后不能用 `{host}`——`resolve.ts` 会报
+  「{host} 需要主地址，但这个工具没有定义 endpoint_var」，不是静默给空串。
+  这个松弛同时给「变体 = 协议」的形态开了路。
+- **`region` 新增 `global`（「国外」）**，只给「服务本身就是源」的工具用（DNS 这类）：
+  Cloudflare 与 Google 的公共解析没有国内镜像可言，读者也常是特意去选。
+  **镜像类工具仍然国外源一律不收**，这条例外写进了 `src/data/mirrors/README.md`。
+- **变体 = 协议**（`plain` / `dot` / `doh` / `try`），没有版本维度：读者常常同时要普通地址与
+  加密地址，用版本下拉反而要来回切。变体的 `label` 不渲染，所以每块靠 `note` 标注协议
+  （note 是工具级的，三个协议各写一次，不是逐源重复）。
+- **JSON 接口与 DoH 端点不一定同路径**，这是实测出来的：
+  - 腾讯 `doh.pub` 与 Cloudflare `cloudflare-dns.com`：`/dns-query` 同时是 DoH 端点与 JSON 接口
+  - 阿里 `dns.alidns.com`：DoH 在 `/dns-query`（**只支持 RFC8484 线格式，GET 带
+    `accept: application/dns-json` 会 400**），JSON 接口在 `/resolve`
+  - Google：DoH 在 `dns.google/dns-query`，JSON 接口在 `dns.google/resolve`
+  所以数据里另有一个 `dohapi` 变量专门放 JSON 接口地址，「试一下」那块用它
+  （那也正好是免安装的自测手段——本机连 `dig` 都没有）。
+- **腾讯的 IP 形式 DoT/DoH 已不再公开提供**（官方公告 2024-09-29，`1.12.12.12` /
+  `120.53.53.53`），只能用域名 `dot.pub` / `doh.pub` 接入，已写进源级 note。
+- 只收官方文档里写明的地址：DNSPod 英文指南只列了 `119.29.29.29`，所以 `119.28.28.28`
+  虽然实测能应答也**不写**（核实不了就不写）。
+- 备选地址与 IPv6 放在源级 note 里而不是地址块里：块里的内容是要被复制去粘贴的，
+  一个字段只放一个值；备用与 IPv6 只作提示。
+- **核实手段是自己拼包查询**（本机没有 dnsutils，得自己拼 DNS 报文）：普通走 UDP 53、
+  DoT 走 TLS 853（DNS over TCP 的 2 字节长度前缀帧）、DoH 走 GET JSON 与 POST 线格式两种。四个提供方 × 三种协议全部实测有应答。
+- **Cloudflare 与 Google 的国内可达性没法从这台机器验**（它到境外是通的），所以 note 里
+  只写「国内可达性取决于线路，部分网络下会被污染或不可达」这种可辩护的话，
+  不给它们标 `degraded`——那是「有坑」的强判断，得有实测依据。
+
 ## 三、部署
 
 `.github/workflows/deploy.yml` 在 push 到 `main` 后构建并发布到 Pages。

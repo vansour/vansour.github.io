@@ -1,0 +1,95 @@
+{
+  "id": "dns",
+  "name": "公共 DNS",
+  "category": "other",
+  "icon": "🌐",
+  "tagline": "公共 DNS 解析服务：普通 / DoT / DoH",
+  "modified_file": "各设备的 DNS 设置，或系统与浏览器里的加密 DNS（DoT/DoH）配置",
+  "variants": [
+    {
+      "key": "plain",
+      "lang": "text",
+      "label": "普通 DNS 地址",
+      "note": "普通 DNS（UDP/TCP 53）：填进设备的 DNS 设置",
+      "code": "{plain}"
+    },
+    {
+      "key": "dot",
+      "lang": "text",
+      "label": "DoT 地址",
+      "note": "DoT（DNS over TLS，853 端口）：填进系统的「私人 DNS」一类设置",
+      "code": "{dot}"
+    },
+    {
+      "key": "doh",
+      "lang": "text",
+      "label": "DoH 地址",
+      "note": "DoH（DNS over HTTPS，443 端口）：填进系统或浏览器的「安全 DNS」",
+      "code": "{doh}"
+    },
+    {
+      "key": "try",
+      "lang": "bash",
+      "label": "试一下 DoH",
+      "note": "返回 JSON 即说明该服务可用。JSON 接口与上面的 DoH 端点不一定同路径，这只是个免安装的自测手段",
+      "code": "curl -s -H 'accept: application/dns-json' '{dohapi}?name=example.com&type=A'"
+    }
+  ],
+  "mirrors": [
+    {
+      "station": "腾讯 DNSPod 公共 DNS",
+      "vars": {
+        "plain": "119.29.29.29",
+        "dot": "dot.pub",
+        "doh": "https://doh.pub/dns-query",
+        "dohapi": "https://doh.pub/dns-query"
+      },
+      "doc": "https://docs.dnspod.com/public-dns/public-dns-guide/",
+      "status": "ok",
+      "verified_at": "2026-09-24",
+      "note": "IP 形式的 DoT/DoH 自 2024-09-29 起不再公开提供（官方公告），只能用域名接入"
+    },
+    {
+      "station": "阿里云公共 DNS（AliDNS）",
+      "vars": {
+        "plain": "223.5.5.5",
+        "dot": "dns.alidns.com",
+        "doh": "https://dns.alidns.com/dns-query",
+        "dohapi": "https://dns.alidns.com/resolve"
+      },
+      "doc": "https://www.alidns.com/",
+      "status": "ok",
+      "verified_at": "2026-09-24",
+      "note": "备用地址 223.6.6.6；IPv6 为 2400:3200::1、2400:3200:baba::1"
+    },
+    {
+      "station": "Cloudflare 1.1.1.1",
+      "region": "global",
+      "vars": {
+        "plain": "1.1.1.1",
+        "dot": "one.one.one.one",
+        "doh": "https://cloudflare-dns.com/dns-query",
+        "dohapi": "https://cloudflare-dns.com/dns-query"
+      },
+      "doc": "https://developers.cloudflare.com/1.1.1.1/encryption/",
+      "status": "ok",
+      "verified_at": "2026-09-24",
+      "note": "备用地址 1.0.0.1；IPv6 为 2606:4700:4700::1111、2606:4700:4700::1001。国内可达性取决于线路，部分网络下会被污染或不可达"
+    },
+    {
+      "station": "Google Public DNS",
+      "region": "global",
+      "vars": {
+        "plain": "8.8.8.8",
+        "dot": "dns.google",
+        "doh": "https://dns.google/dns-query",
+        "dohapi": "https://dns.google/resolve"
+      },
+      "doc": "https://developers.google.com/speed/public-dns/docs/using",
+      "status": "ok",
+      "verified_at": "2026-09-24",
+      "note": "备用地址 8.8.4.4；IPv6 为 2001:4860:4860::8888、2001:4860:4860::8844。国内可达性取决于线路，部分网络下会被污染或不可达"
+    }
+  ],
+  "note": "这个工具没有 endpoint_var：每个协议一个地址，普通 DNS 还是裸 IP，过不了「主地址必须是 http(s) 字面 URL」那条校验——schema 已允许省略。变体的 label 不渲染，所以每块靠 note 标注协议。收录 Cloudflare 与 Google 是有意为之：DNS 这类工具里「服务本身就是源」，国外主流解析器没有国内镜像可言，region 用 global 与国内两家区分；镜像类工具仍然不收国外源。"
+}
