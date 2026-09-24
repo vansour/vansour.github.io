@@ -1,0 +1,96 @@
+{
+  "id": "rustup",
+  "name": "rustup",
+  "category": "language",
+  "icon": "🦀",
+  "tagline": "Rust 工具链的下载源",
+  "modified_file": "环境变量 RUSTUP_DIST_SERVER / RUSTUP_UPDATE_ROOT（写进 shell 配置则长期生效）",
+  "endpoint_var": "dist",
+  "var_defaults": {
+    "update": "{dist}/rustup"
+  },
+  "variants": [
+    {
+      "key": "oneshot",
+      "lang": "bash",
+      "label": "只装一次",
+      "code": "RUSTUP_DIST_SERVER={dist} rustup install stable",
+      "note": "只影响这一条命令，重开终端就没了；要长期生效用下面那块"
+    },
+    {
+      "key": "shellrc",
+      "lang": "bash",
+      "label": "写进 shell 配置（长期生效）",
+      "code": "echo 'export RUSTUP_DIST_SERVER={dist}' >> ~/.bashrc\necho 'export RUSTUP_UPDATE_ROOT={update}' >> ~/.bashrc",
+      "note": "只写配置，对之后打开的终端生效；zsh 用户把 ~/.bashrc 换成 ~/.zshrc。重复执行会追加重复行，值相同、无害"
+    }
+  ],
+  "mirrors": [
+    {
+      "station": "清华大学开源软件镜像站",
+      "vars": {
+        "dist": "https://mirrors.tuna.tsinghua.edu.cn/rustup"
+      },
+      "doc": "https://mirrors.tuna.tsinghua.edu.cn/help/rustup/",
+      "status": "ok",
+      "verified_at": "2026-09-24"
+    },
+    {
+      "station": "中国科学技术大学开源软件镜像",
+      "vars": {
+        "dist": "https://mirrors.ustc.edu.cn/rust-static"
+      },
+      "doc": "https://mirrors.ustc.edu.cn/help/rust-static.html",
+      "status": "ok",
+      "verified_at": "2026-09-24"
+    },
+    {
+      "station": "阿里巴巴开源镜像站",
+      "vars": {
+        "dist": "https://mirrors.aliyun.com/rustup"
+      },
+      "doc": "https://developer.aliyun.com/mirror/rustup",
+      "status": "degraded",
+      "verified_at": "2026-09-24",
+      "note": "同步滞后：stable 只到 Rust 1.96.0（2026-05）、rustup 自身只到 1.29.0，装到的会是几个月前的版本"
+    },
+    {
+      "station": "南京大学镜像站",
+      "vars": {
+        "dist": "https://mirrors.nju.edu.cn/rustup"
+      },
+      "doc": "https://mirrors.nju.edu.cn/help/rustup",
+      "status": "ok",
+      "verified_at": "2026-09-24"
+    },
+    {
+      "station": "华为云镜像站",
+      "vars": {
+        "dist": "https://mirrors.huaweicloud.com/rustup"
+      },
+      "status": "ok",
+      "verified_at": "2026-09-24"
+    },
+    {
+      "station": "RsProxy（字节跳动）",
+      "vars": {
+        "dist": "https://rsproxy.cn"
+      },
+      "doc": "https://rsproxy.cn/",
+      "status": "ok",
+      "verified_at": "2026-09-24"
+    },
+    {
+      "station": "Rust 官方源",
+      "region": "official",
+      "vars": {
+        "dist": "https://static.rust-lang.org"
+      },
+      "doc": "https://rustup.rs/",
+      "status": "ok",
+      "verified_at": "2026-09-24",
+      "note": "rustup 默认就用这个地址，不配置也能用；这一条是给改过镜像、想改回来的人"
+    }
+  ],
+  "note": "RUSTUP_DIST_SERVER 管工具链（channel 清单与各组件包），RUSTUP_UPDATE_ROOT 管 rustup 自身的自更新，后者默认就是前者加 /rustup，所以各源只填一个地址。这里只管装 Rust 工具链；装 crates.io 包是另一个工具（crates.io / Cargo）。"
+}

@@ -285,6 +285,51 @@ npm run check    # astro check，类型检查（deploy.yml 里排在 build 之�
   华为云是 Angular SPA，**内容在 JS bundle 的 `this.guide=` 里**；南大是纯 Vue SPA 外壳，
   `/help/node.md` 也只是外壳，只能靠端点核实。
 
+#### Rust 侧（rustup 与 crates.io，2026-09-24 核实）
+
+- **两个页面对应两件不同的事**：`/mirrors/rustup/` 配 `RUSTUP_DIST_SERVER` 与
+  `RUSTUP_UPDATE_ROOT`（装 Rust 工具链），`/mirrors/crates-io/` 配 cargo 的 source 替换
+  （装 crates）。前者不影响装包，后者不影响装 Rust。
+- `RUSTUP_UPDATE_ROOT` 在收录的 7 个源上都等于 `RUSTUP_DIST_SERVER` + `/rustup`，
+  所以用 `var_defaults: {"update": "{dist}/rustup"}` 派生，各源只填一个地址。
+  相关实取路径：工具链清单 `dist/channel-rust-stable.toml`、组件包
+  `dist/<日期>/rust-<版本>-<target>.tar.xz(.sha256)`、rustup 自身清单
+  `rustup/release-stable.toml`、自更新二进制 `rustup/archive/<版本>/<target>/rustup-init`
+  （**后者的地址由 rustup 自己拼，不在 release-stable.toml 里**）。
+- **crates.io 侧只支持 sparse 协议**，`config.json` 是必需文件，索引地址末尾的 `/`
+  不能少。模板写成 `"sparse+{index}/"`——斜杠进了模板，读者就不可能漏；
+  `sparse+` 前缀也不能进 vars，schema 只认 http(s) 开头的字面 URL。
+- **crates 页故意没有官方源条目**：cargo 默认就取 crates.io，把官方 sparse index 写进
+  `replace-with` 会让 cargo 直接报错（`source mirror defines source registry crates-io,
+  but that source is already defined`，实跑撞过）。要回官方就是删掉 config 里那几段。
+- `$CARGO_HOME/config.toml` 用 **`tee -a` 追加**（TUNA、USTC 的官方写法都是追加，
+  与 apt 那边整文件覆盖不同：这个文件里可能还有 `[net]`、`[build]` 等其它设置）。
+  代价是重复执行会追加出重复段、cargo 报 duplicate key，已写进变体 note。
+- 路径里的 `${CARGO_HOME:-$HOME/.cargo}` 含花括号，JSON 里要写成
+  `${{CARGO_HOME:-$HOME/.cargo}}`（`{{`/`}}` 是模板转义），渲染出来才是单层。
+- **aliyun 的 rustup 停更**：stable 只到 Rust 1.96.0（2026-05-28 的清单）、rustup 自身
+  1.29.0，1.98.1 / 1.29.1 的文件 404，标 `degraded`。其余五家都是 1.98.1。
+  它的 crates 索引是新的（tokio 与别家同步），故两页状态不同。
+- **TUNA 的 crates 只镜像索引**：`config.json` 里的 `dl` 指向官方 `static.crates.io`，
+  .crate 包仍从国外取（`/crates.io/api/v1/crates/...` 是 404，它确实不存包），
+  标 `degraded` 并在 note 写明。各源的 `dl` 由各自 config.json 决定：ustc 是
+  `.../crates.io/api/v1/crates`、aliyun 是 `.../crates/api/v1/crates`、nju 是
+  `mirror.nju.edu.cn/crates.io/crates/{crate}/{crate}-{version}.crate`
+  （**dl 主机是 mirror.nju.edu.cn，与索引所在的 mirrors.nju.edu.cn 不是一个域名**）、
+  rsproxy 是 `rsproxy.cn/api/v1/crates`——照搬别家配置时别把 dl 的域名一起换掉。
+- RsProxy 是字节跳动的公益镜像，比别家多一块：**代理 rustup-init.sh 与 crates 的
+  搜索/发布**，`.crate` 下载会 307 到它自己的 CDN `lf9-static.rsproxy.cn`。
+- **华为云只有 rustup、没有 crates**：`/crates.io-index/config.json` 返回的是它的
+  Angular 外壳（200、`text/html`、12109 字节），不是索引。
+- **核实手段**：rustup 用 `rustup check`（各源报出的版本不同，正好证明真打到了各源；
+  aliyun 的 1.96.0 就是这么发现的）；crates 用隔离 `CARGO_HOME` 跑 `cargo fetch`，
+  看 `registry/cache/<主机名>-<hash>/` 的目录名与 cargo 打印的
+  `Downloaded ... (registry mirror)` 一行。两轮都用**产物里的命令原文**回跑过一遍。
+- **状态码会骗人，必须看正文**：镜像站的 SPA 对任何路径都回 200 + 同一份 HTML 外壳
+  （华为云的 `/crates.io-index/*` 就是），只看 `%{http_code}` 会把「没有这个镜像」
+  判成「有」。要连 `content_type` 与字节数一起看，或直接解析内容。同理，路径拼空会落到
+  **目录列表**也返回 200——测单个文件时别让路径为空。
+
 ## 三、部署
 
 `.github/workflows/deploy.yml` 在 push 到 `main` 后构建并发布到 Pages。
