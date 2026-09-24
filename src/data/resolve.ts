@@ -18,7 +18,7 @@ import { DERIVED_VARS } from './schema';
  *   - 残留检测是精确的，不依赖正则去猜
  *   - 能报出具体是哪个占位符、在第几行
  *
- * 模板语法三条（见 src/data/mirrors/README.md）：
+ * 模板语法三条（见 src/data/tools/README.md）：
  *   {name}    占位符，name 匹配 ^[a-z][a-z0-9_]*$，值从变量表取
  *   {{ }}     转义，输出字面量的花括号
  *   其它 { }  报错，不静默放过
@@ -338,7 +338,7 @@ export function resolveVariants(
       });
     }
 
-    variants.push({ key: v.key, lang: v.lang, label: v.label, note: v.note, code: r.text });
+    variants.push({ key: v.key, lang: v.lang, label: v.label, code: r.text });
   }
 
   if (variants.length === 0) {
@@ -376,6 +376,8 @@ export function resolveDoc(
   return {
     doc: {
       ...input,
+      // 页面地址缺省是 /mirrors/<id>/；写了 path 的工具（如公共 DNS）不走那个板块
+      path: input.path ?? `/mirrors/${input.id}/`,
       versions: list.map((v) => ({ key: v.key, label: v.label })),
       mirrors,
     },

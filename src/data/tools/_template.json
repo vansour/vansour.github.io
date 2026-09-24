@@ -5,7 +5,6 @@
   "icon": "🐍",
   "tagline": "一句话说明这个工具是做什么的",
   "modified_file": "~/.example/config",
-  "note": "工具级说明，对该工具所有镜像源都成立。各源相同的注意事项写这里，不要逐条重复。",
   "endpoint_var": "url",
   "var_defaults": {
     "extra": "{url}/extra"
@@ -37,8 +36,7 @@
       "key": "oneshot",
       "lang": "bash",
       "label": "本次生效",
-      "code": "example install --index {url} --channel {channel}",
-      "note": "只影响这一次命令"
+      "code": "example install --index {url} --channel {channel}"
     }
   ],
   "mirrors": [
@@ -49,8 +47,7 @@
       },
       "doc": "https://example.invalid/help/",
       "status": "ok",
-      "verified_at": "2026-09-23",
-      "note": "只对这个源成立的提醒。源级 note 会渲染在命令块上方，工具级 note 目前不渲染"
+      "verified_at": "2026-09-23"
     },
     {
       "station": "官方 example.com",

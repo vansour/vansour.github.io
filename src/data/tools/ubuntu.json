@@ -30,7 +30,6 @@
       "key": "clear",
       "lang": "bash",
       "label": "清空旧配置",
-      "note": "会一并删掉 sources.list.d 下的第三方源（如 docker.list）",
       "code": "sudo rm -rf /etc/apt/mirrors \\\n            /etc/apt/sources.list.d/* \\\n            /etc/apt/sources.list"
     },
     {
@@ -106,6 +105,5 @@
       "status": "ok",
       "verified_at": "2026-09-24"
     }
-  ],
-  "note": "版本下拉必须与你实际运行的发行版一致——套件代号（noble / resolute）写错会让 apt 直接报找不到该套件，用 `. /etc/os-release && echo $VERSION_CODENAME` 查自己的代号。执行前若 /etc/apt/sources.list 里还有条目，需一并注释掉，否则新旧两个入口会同时生效。deb-src 只在需要下载源码包时才要，留着会拖慢 apt update。"
+  ]
 }

@@ -21,7 +21,6 @@
         "url": "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
       },
       "doc": "https://mirrors.tuna.tsinghua.edu.cn/help/pypi/",
-      "note": "地址末段的 simple 路径不能省，且必须走 https。等价简写地址为 https://pypi.tuna.tsinghua.edu.cn/simple",
       "status": "ok",
       "verified_at": "2026-09-23"
     }

@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import Sidebar from '../components/Sidebar.astro';
+import { boards } from '../data/index';
 import { isSection } from '../lib/nav';
 
 interface Props {
@@ -11,10 +12,8 @@ interface Props {
 const { title, description = '个人导航页' } = Astro.props;
 
 const path = Astro.url.pathname;
-const nav = [
-  { href: '/', label: '首页' },
-  { href: '/mirrors/', label: '国内镜像源' },
-];
+// 顶栏就是「各板块 + 首页」，板块清单在数据层，加一个板块不用改这里
+const nav = [{ href: '/', label: '首页' }, ...boards.map((b) => ({ href: b.href, label: b.name }))];
 
 // 目录只在镜像源板块出现——首页是入口页，没有目录可列
 const withSidebar = isSection(path, '/mirrors/');

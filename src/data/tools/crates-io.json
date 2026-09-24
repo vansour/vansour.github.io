@@ -11,8 +11,7 @@
       "key": "config",
       "lang": "bash",
       "label": "写入 cargo 配置",
-      "code": "mkdir -vp ${{CARGO_HOME:-$HOME/.cargo}}\ncat << 'EOF' | tee -a ${{CARGO_HOME:-$HOME/.cargo}}/config.toml\n[source.crates-io]\nreplace-with = 'mirror'\n\n[source.mirror]\nregistry = \"sparse+{index}/\"\n\n[registries.mirror]\nindex = \"sparse+{index}/\"\nEOF",
-      "note": "追加写入，不覆盖文件里已有的内容；重复执行会追加出重复段（cargo 报 duplicate key，删掉多出来那段即可）。改回官方源就是把这几段删掉"
+      "code": "mkdir -vp ${{CARGO_HOME:-$HOME/.cargo}}\ncat << 'EOF' | tee -a ${{CARGO_HOME:-$HOME/.cargo}}/config.toml\n[source.crates-io]\nreplace-with = 'mirror'\n\n[source.mirror]\nregistry = \"sparse+{index}/\"\n\n[registries.mirror]\nindex = \"sparse+{index}/\"\nEOF"
     }
   ],
   "mirrors": [
@@ -52,6 +51,5 @@
       "status": "ok",
       "verified_at": "2026-09-24"
     }
-  ],
-  "note": "这里不列官方源：cargo 默认就取 crates.io，把官方 sparse index 写进 replace-with 会让 cargo 直接报错（source mirror defines source registry crates-io, but that source is already defined），要回到官方删掉那几段即可。末尾的 / 是 sparse 索引必须的，模板里已经带上。"
+  ]
 }

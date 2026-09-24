@@ -30,7 +30,6 @@
       "key": "clear",
       "lang": "bash",
       "label": "清空旧配置",
-      "note": "会一并删掉 sources.list.d 下的第三方源（如 docker.list）",
       "code": "sudo rm -rf /etc/apt/mirrors \\\n            /etc/apt/sources.list.d/* \\\n            /etc/apt/sources.list"
     },
     {
@@ -105,6 +104,5 @@
       "status": "ok",
       "verified_at": "2026-09-23"
     }
-  ],
-  "note": "执行前若 /etc/apt/sources.list 里还有条目，需一并注释掉，否则新旧两个入口会同时生效。deb-src 只在需要下载源码包时才要，留着会拖慢 apt update。"
+  ]
 }

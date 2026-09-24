@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * 镜像源数据的结构定义。src/data/mirrors/*.json 里的每个文件都会被
+ * 镜像源数据的结构定义。src/data/tools/*.json 里的每个文件都会被
  * src/data/index.ts 读取并按此校验；不符合的文件会让构建直接失败。
  *
  * 数据分三层：
@@ -71,8 +71,6 @@ export const variant = z.object({
    * 要输出字面量花括号时写成 {{ 和 }}。
    */
   code: z.string().min(1, '变体 code 不能为空'),
-  /** 只对该变体成立的一句话。工具级写一次，不随源重复 */
-  note: z.string().optional(),
 });
 
 /**
@@ -121,11 +119,6 @@ export const mirrorEntry = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'verified_at 必须是 YYYY-MM-DD 格式'),
   /**
-   * 只对该镜像源成立的提醒，如「会覆盖原文件」「商用需授权」。
-   * 各源共同的注意事项请写到工具级 note，不要在这里逐条重复。
-   */
-  note: z.string().optional(),
-  /**
    * 该源不适用的变体 key。只允许「少一块」，不允许改写正文——
    * 改写会让模板不再是唯一事实来源，也就失去了「同一变体在各源只差变量」
    * 这条可审计的性质。只在确实存在个别情况时才写。
@@ -149,11 +142,14 @@ export const mirrorDoc = z
     /** 该配置会修改的文件，或「环境变量」。读者动手前应当能看到这个 */
     modified_file: z.string().min(1, NOT_EMPTY),
     /**
-     * 工具级说明，适用于该工具的所有镜像源。
-     * 各源完全相同的注意事项写这里；只对某个源成立的写该源的 note，
-     * 否则一句相同的话会随源的个数重复十几遍。
+     * 页面地址。缺省是 `/mirrors/<id>/`；不在「国内镜像源」板块里的工具自己写，
+     * 如公共 DNS 写 `/dns/`。写了的工具不会出现在 /mirrors/ 的目录与卡片里
+     * （那两处按路径前缀筛），也不需要它自己的板块有索引页。
      */
-    note: z.string().optional(),
+    path: z
+      .string()
+      .regex(/^\/(?:[a-z0-9-]+\/)+$/, 'path 必须是 /a/ 或 /a/b/ 这样的绝对路径（带尾斜杠）')
+      .optional(),
     /**
      * 哪个变量是这个工具的「主地址」：endpoint 与 {host} 都由它推导，
      * 这样就不存在「展示地址与命令里的地址不一致」这一整类 bug。
@@ -304,7 +300,6 @@ export interface ResolvedVariant {
   key: string;
   lang: string;
   label: string;
-  note?: string;
   code: string;
 }
 
@@ -332,9 +327,11 @@ export interface MirrorEntry extends Omit<MirrorEntryInput, 'vars' | 'skip_varia
   perVersion: VersionedVariants[];
 }
 
-export interface MirrorDoc extends Omit<MirrorDocInput, 'mirrors' | 'versions'> {
+export interface MirrorDoc extends Omit<MirrorDocInput, 'mirrors' | 'versions' | 'path'> {
   /** 没有 versions 的工具在这里补成单项（key 与 label 都是空串），组件不必再判空 */
   versions: ResolvedVersion[];
+  /** 缺省补成 `/mirrors/<id>/`，下游一律读它，不必再各自判空 */
+  path: string;
   mirrors: MirrorEntry[];
 }
 

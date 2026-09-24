@@ -1,0 +1,29 @@
+---
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+import Base from '../../layouts/Base.astro';
+import ToolView from '../../components/ToolView.astro';
+import { docs } from '../../data/index';
+
+/**
+ * 不在「国内镜像源」板块里的工具由这条路由生成——数据里自带 `path` 的那些
+ * （如公共 DNS 的 `/dns/`）。静态路由优先于动态路由，所以 `/mirrors/...`
+ * 仍然走它自己的页面，不会被这里截走。
+ *
+ * 这样「新增一个工具 = 新增一个文件，不改任何代码」这条对自带 path 的工具也成立。
+ */
+export const getStaticPaths = (() =>
+  docs
+    .filter((doc) => !doc.path.startsWith('/mirrors/'))
+    .map((doc) => ({
+      // '/dns/' → 'dns'；多段的 '/a/b/' → 'a/b'
+      params: { path: doc.path.replace(/^\/|\/$/g, '') },
+      props: { doc },
+    }))) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+const { doc } = Astro.props;
+---
+
+<Base title={`${doc.name} · vansour`} description={doc.tagline}>
+  <ToolView doc={doc} />
+</Base>

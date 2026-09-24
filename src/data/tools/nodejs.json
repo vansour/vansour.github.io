@@ -11,8 +11,7 @@
       "key": "registry",
       "lang": "bash",
       "label": "永久配置",
-      "code": "npm config set registry {registry}",
-      "note": "项目里的 .npmrc 会覆盖这项用户级配置：设完仍走官方源的话，先看项目里的 .npmrc"
+      "code": "npm config set registry {registry}"
     }
   ],
   "mirrors": [
@@ -42,9 +41,7 @@
       },
       "doc": "https://docs.npmjs.com/",
       "status": "ok",
-      "verified_at": "2026-09-24",
-      "note": "npm 的默认源，不配置就走它；这一条是给改过镜像、想改回来的人"
+      "verified_at": "2026-09-24"
     }
-  ],
-  "note": "把 registry 改回来用 npm config delete registry。国内可用的 npm registry 镜像很少：清华、中科大、南大的该服务均已下线或只给改写过的元数据（南大 repo.nju.edu.cn/npm 的 tarball 地址是明文 http，按第 8 条不收），故只收 npmmirror 与华为云。"
+  ]
 }

@@ -76,10 +76,12 @@ GitHub Pages 用户站点，Astro 静态站。最终地址 <https://vansour.gith
 astro.config.mjs           site / build 配置 + Tailwind 的 vite 插件，换域名只改这里
 src/pages/index.astro      导航首页，新增板块在 links 数组里加一项
 src/pages/mirrors/index.astro  索引页：按分类的工具卡片网格
-src/pages/mirrors/[id].astro   【每工具一页】版本/来源两个下拉 + 命令面板
+src/pages/mirrors/[id].astro   【每工具一页】/mirrors/ 板块的工具页
+src/pages/[...path]/index.astro 【自带 path 的工具】如公共 DNS 的 /dns/
 src/layouts/Base.astro     全站骨架（顶栏 / 侧栏 / 内容）+ 复制/切换/主题脚本 + toast
 src/components/Sidebar.astro   左侧目录（分类 → 工具）。**同页渲染两份，内不许有 id**
-src/components/CodeBlock.astro  一块命令（可选的 note + pre + 复制按钮）
+src/components/ToolView.astro  工具页正文（noscript + 标题 + 两个下拉 + 面板）
+src/components/CodeBlock.astro  一块命令（pre + 复制按钮）
 src/components/SourcePanel.astro 一个「版本 × 源」的命令面板
 src/components/NavCard.astro   导航卡片，首页与索引页共用
 src/lib/slug.ts            由站名派生锚点 slug（渲染期推导，不入数据）
@@ -88,10 +90,20 @@ src/styles/global.css      Tailwind 入口 + 调色板 + 主题别名 + 唯一�
 src/data/schema.ts         数据结构的 zod 定义与中文标签
 src/data/resolve.ts        模板占位符替换 + 报错格式化（纯函数）
 src/data/index.ts          读取、检查、聚合 mirrors/ 下所有 JSON，导出 sections
-src/data/mirrors/*.json    【内容都在这里】一个工具一个文件
+src/data/tools/*.json    【内容都在这里】一个工具一个文件
 ```
 
 ### 路由
+
+**站点分板块**：`/mirrors/`（国内镜像源，索引页 + 每工具一页）与 `/dns/`（公共 DNS，
+一页搞定）。板块清单在 `src/data/index.ts` 的 `boards` 里——首页卡片与顶栏导航都由它生成。
+
+工具的页面地址缺省是 `/mirrors/<id>/`；**不在这个板块里的工具在数据里写 `path`**
+（如公共 DNS 写 `"/dns/"`），它会自动：
+  · 不出现在 `/mirrors/` 的目录与卡片里（那两处按 `path.startsWith('/mirrors/')` 筛）；
+  · 由 `src/pages/[...path]/index.astro` 生成页面，**不必改代码**；
+  · 拿掉所属板块的侧边栏（侧栏只在 `/mirrors/` 之下出现）。
+`path` 必须唯一，重复会在构建期直接报错（两个工具抢同一个输出文件）。
 
 每工具一个页面的 URL 是 `/mirrors/<id>/`，索引页是 `/mirrors/`。
 **`src/pages/mirrors.astro` 不能存在**——它会和 `mirrors/index.astro` 抢同一个输出文件
@@ -147,7 +159,7 @@ CI 用的是 `npm ci`，lockfile 与 package.json 不一致会直接失败。注
 数据有两个**正交**维度：**版本**（Debian 12 / 13）与**源**（清华、中科大…），
 页面上的命令是两者的组合。两条轴各自只填自己那部分变量，命令模板全站只有一份。
 
-因此新增或修改 `src/data/mirrors/*.json` 时必须遵守：
+因此新增或修改 `src/data/tools/*.json` 时必须遵守：
 
 1. **`verified_at` 必须真实**。它是整个站点的可信度来源，填没核实过的日期等于骗人。
    改动了某个镜像站的数据，就更新那一条的 `verified_at`。
@@ -188,7 +200,7 @@ CI 用的是 `npm ci`，lockfile 与 package.json 不一致会直接失败。注
 在占位符后面接字面文字。于是各源只需填一个地址、各版本只需填一个套件名，
 「安全更新 URI 写错」「套件名写错」这两类坑都被结构性消除。
 
-完整的字段与语法说明见 `src/data/mirrors/README.md`，起手可复制 `_template.json`。
+完整的字段与语法说明见 `src/data/tools/README.md`，起手可复制 `_template.json`。
 
 ### 检查分两阶段，报错合并一次抛出
 
@@ -251,8 +263,8 @@ CI 用的是 `npm ci`，lockfile 与 package.json 不一致会直接失败。注
 - Ubuntu 的组件是四个 `main restricted universe multiverse`，keyring 为
   `ubuntu-archive-keyring.gpg`；Debian 的四个是 `main contrib non-free non-free-firmware`。
 - Ubuntu 的版本下拉选错会让 apt 直接报「找不到该套件」——两个版本同在页面上，
-  选错比过去硬编码一个版本时更容易发生。工具级 note 里已写明用
-  `. /etc/os-release && echo $VERSION_CODENAME` 查自己的代号。
+  选错比过去硬编码一个版本时更容易发生。页面上不解释这一点（note 已移除），
+  维护时记得版本号与代号是两回事。
 
 #### Node 侧（nvm 与 npm，2026-09-24 核实）
 
@@ -268,7 +280,8 @@ CI 用的是 `npm ci`，lockfile 与 package.json 不一致会直接失败。注
 - **TUNA 的 nodejs-release 已停止同步**：`index.tab` 的 Last-Modified 停在 **2025-05-21**，
   最新只有 v24.1.0，v24.21.0 与 v26.10.0 都是 404。路径还在，但装新版本会取不到，
   2026-09-24 按此把它从 nvm 页移除，**不要再加回来**（网上清单仍把它当现役 Node 源）。
-- **南大 nodejs-release 同步滞后**：最新 v26.8.1，缺 v26.9.0 / v26.10.0，同样标 `degraded`。
+- **南大 nodejs-release 同步滞后**：最新只到 v26.8.1，缺 v26.9.0 / v26.10.0。
+  2026-09-24 已按「不收带坑的源」（页面没地方解释状态）把它从 nvm 页移除，**别再收**。
   中科大、阿里云、华为云、腾讯云的 index.tab 都是 2026-09-22/23 的，含 v26.10.0。
 - 华为云把 Node 二进制放在 **`/nodejs/`**（没有 nodejs-release 这个路径），npm registry 在
   `/repository/npm/`。**它的帮助内容在 JS bundle 里**（`MirrorPortal-CDN/.../main.*.js`，
@@ -313,12 +326,13 @@ CI 用的是 `npm ci`，lockfile 与 package.json 不一致会直接失败。注
   but that source is already defined`，实跑撞过）。要回官方就是删掉 config 里那几段。
 - `$CARGO_HOME/config.toml` 用 **`tee -a` 追加**（TUNA、USTC 的官方写法都是追加，
   与 apt 那边整文件覆盖不同：这个文件里可能还有 `[net]`、`[build]` 等其它设置）。
-  代价是重复执行会追加出重复段、cargo 报 duplicate key，已写进变体 note。
+  代价是重复执行会追加出重复段、cargo 报 duplicate key——页面上不解释这个
+  （note 已移除），只有本文件记着。
 - 路径里的 `${CARGO_HOME:-$HOME/.cargo}` 含花括号，JSON 里要写成
   `${{CARGO_HOME:-$HOME/.cargo}}`（`{{`/`}}` 是模板转义），渲染出来才是单层。
 - **aliyun 的 rustup 停更**：stable 只到 Rust 1.96.0（2026-05-28 的清单）、rustup 自身
-  1.29.0，1.98.1 / 1.29.1 的文件 404，标 `degraded`。其余五家都是 1.98.1。
-  它的 crates 索引是新的（tokio 与别家同步），故两页状态不同。
+  1.29.0，1.98.1 / 1.29.1 的文件 404。2026-09-24 已从 rustup 页移除（理由同上），**别再收**；
+  它的 crates 索引当时是新的（tokio 与别家同步），所以 crates 页留着它。
 - **TUNA 的 crates 只镜像索引，2026-09-24 已移除，不要再加回来**：它的 `config.json` 里
   `dl` 指向官方 `static.crates.io`，.crate 包仍从国外取（`/crates.io/api/v1/crates/...`
   是 404，它确实不存包）——索引在国内、包在国外，读者以为快其实没快。
@@ -349,10 +363,11 @@ CI 用的是 `npm ci`，lockfile 与 package.json 不一致会直接失败。注
   这个松弛同时给「变体 = 协议」的形态开了路。
 - **`region` 新增 `global`（「国外」）**，只给「服务本身就是源」的工具用（DNS 这类）：
   Cloudflare 与 Google 的公共解析没有国内镜像可言，读者也常是特意去选。
-  **镜像类工具仍然国外源一律不收**，这条例外写进了 `src/data/mirrors/README.md`。
+  **镜像类工具仍然国外源一律不收**，这条例外写进了 `src/data/tools/README.md`。
 - **变体 = 协议**（`plain` / `dot` / `doh` / `try`），没有版本维度：读者常常同时要普通地址与
-  加密地址，用版本下拉反而要来回切。变体的 `label` 不渲染，所以每块靠 `note` 标注协议
-  （note 是工具级的，三个协议各写一次，不是逐源重复）。
+  加密地址，用版本下拉反而要来回切。变体的 `label` 不渲染，而 note 已经移除，所以
+  块的顺序与内容的形状是唯一的线索——固定按「普通（裸 IP）→ DoT（裸主机名）→ DoH（URL）→
+  自测命令」排，四家的顺序一致。**改这个顺序就等于让读者读不懂**。
 - **JSON 接口与 DoH 端点不一定同路径**，这是实测出来的：
   - 腾讯 `doh.pub` 与 Cloudflare `cloudflare-dns.com`：`/dns-query` 同时是 DoH 端点与 JSON 接口
   - 阿里 `dns.alidns.com`：DoH 在 `/dns-query`（**只支持 RFC8484 线格式，GET 带
@@ -361,16 +376,18 @@ CI 用的是 `npm ci`，lockfile 与 package.json 不一致会直接失败。注
   所以数据里另有一个 `dohapi` 变量专门放 JSON 接口地址，「试一下」那块用它
   （那也正好是免安装的自测手段——本机连 `dig` 都没有）。
 - **腾讯的 IP 形式 DoT/DoH 已不再公开提供**（官方公告 2024-09-29，`1.12.12.12` /
-  `120.53.53.53`），只能用域名 `dot.pub` / `doh.pub` 接入，已写进源级 note。
+  `120.53.53.53`），只能用域名 `dot.pub` / `doh.pub` 接入。页面上没地方说这件事，
+  只在数据层的 `modified_file` 与这份文档里记着。
 - 只收官方文档里写明的地址：DNSPod 英文指南只列了 `119.29.29.29`，所以 `119.28.28.28`
   虽然实测能应答也**不写**（核实不了就不写）。
-- 备选地址与 IPv6 放在源级 note 里而不是地址块里：块里的内容是要被复制去粘贴的，
-  一个字段只放一个值；备用与 IPv6 只作提示。
+- 块里只放**一个**值：那是要被复制去粘贴的（DNS 设置字段只吃一个地址）。
+  正因如此，备选地址与 IPv6 当初只能塞进 note——note 移除后它们就没有位置了。
+  要重新收进来的唯一办法是给它们各自的变体块（`plain6` 之类），别再退回说明文字。
 - **核实手段是自己拼包查询**（本机没有 dnsutils，得自己拼 DNS 报文）：普通走 UDP 53、
   DoT 走 TLS 853（DNS over TCP 的 2 字节长度前缀帧）、DoH 走 GET JSON 与 POST 线格式两种。四个提供方 × 三种协议全部实测有应答。
-- **Cloudflare 与 Google 的国内可达性没法从这台机器验**（它到境外是通的），所以 note 里
-  只写「国内可达性取决于线路，部分网络下会被污染或不可达」这种可辩护的话，
-  不给它们标 `degraded`——那是「有坑」的强判断，得有实测依据。
+- **Cloudflare 与 Google 的国内可达性没法从这台机器验**（它到境外是通的）。
+  页面上不再有说明文字，所以这条注意事项目前只存在于这份文档里；
+  真要给读者看到，得另想办法（比如说明性的变体块），不要偷偷塞回 note。
 
 ## 三、部署
 
@@ -532,10 +549,10 @@ JS 关掉时退化成跟随系统。
 - 不提供 `curl | bash` 一类不透明脚本。命令要让人能读、能核对，这是本站的信任基础
 - 命令要让人一眼看出它**会改哪个文件**：写入类命令用 `sudo tee /etc/...` 这种把路径
   写在命令里的写法，页面上不再单列一行（那行与命令里的路径是同一个事实，写两遍只会各自过期）
-- `note` 分三级，只有后两级入 UI：**工具级不渲染**（留作数据出处），
-  **源级与变体级渲染在命令块上方**，中性灰。它们是页面上仅有的风险提示通道——
-  状态标签、页脚与核实日期行都已移除，所以 `degraded` / `dead` 的源、
-  以及会删文件的命令，都必须在 note 里写清楚
+- **页面上没有任何解释性文字**：note 字段已从 schema 里整个移除（工具级、变体级、
+  源级三处都没有了），切面提示只剩「状态淡化」这一种。所以收录时就别收已知有问题的源——
+  淡化而不解释等于让读者猜。维护性的说明（为什么移除、有什么坑）一律写进本文件与
+  数据层的 `modified_file`，不要试图塞回页面
 - **页面上不放解释性文字**：没有页脚，没有「本页数据核实于 … 共 N 个源」，
   面板上那行元信息与「修改 /etc/…」也都删了。`verified_at` 与 `status` 只作为
   数据字段存在、不再渲染——**字段仍然必填且必须真实**，它们是给维护者和将来的 UI 用的

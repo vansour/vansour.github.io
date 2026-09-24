@@ -1,18 +1,16 @@
 ---
 import Base from '../layouts/Base.astro';
 import NavCard from '../components/NavCard.astro';
-import { docs } from '../data/index';
+import { boards, docs } from '../data/index';
 
-// 导航首页。新增板块时在这里加一项即可
-const links = [
-  {
-    href: '/mirrors/',
-    icon: '🪞',
-    name: '国内镜像源',
-    desc: '各语言、系统包管理器的国内镜像源，附可直接粘贴的配置命令。',
-    count: docs.length,
-  },
-];
+// 导航首页：一个板块一张卡片，板块清单在 src/data/index.ts 的 boards 里
+const links = boards.map((board) => ({
+  href: board.href,
+  icon: board.icon,
+  name: board.name,
+  desc: board.desc,
+  count: docs.filter((doc) => doc.path.startsWith(board.href)).length,
+}));
 ---
 
 <Base title="vansour" description="个人导航页">

@@ -11,15 +11,13 @@
       "key": "session",
       "lang": "bash",
       "label": "当前 shell 生效",
-      "code": "export NVM_NODEJS_ORG_MIRROR={url}\nnvm install --lts",
-      "note": "只在当前 shell 生效，重开终端就没了；要长期生效用下面那块"
+      "code": "export NVM_NODEJS_ORG_MIRROR={url}\nnvm install --lts"
     },
     {
       "key": "shellrc",
       "lang": "bash",
       "label": "写进 shell 配置（长期生效）",
-      "code": "echo 'export NVM_NODEJS_ORG_MIRROR={url}' >> ~/.bashrc",
-      "note": "只写配置，对之后打开的终端生效；zsh 用户把 ~/.bashrc 换成 ~/.zshrc。重复执行会追加重复行，值相同、无害"
+      "code": "echo 'export NVM_NODEJS_ORG_MIRROR={url}' >> ~/.bashrc"
     }
   ],
   "mirrors": [
@@ -42,16 +40,6 @@
       "verified_at": "2026-09-24"
     },
     {
-      "station": "南京大学镜像站",
-      "vars": {
-        "url": "https://mirrors.nju.edu.cn/nodejs-release"
-      },
-      "doc": "https://mirrors.nju.edu.cn/help/node",
-      "status": "degraded",
-      "verified_at": "2026-09-24",
-      "note": "同步滞后：最新只到 v26.8.1，缺 v26.9.0 与 v26.10.0，装最新版会取不到"
-    },
-    {
       "station": "华为云镜像站",
       "vars": {
         "url": "https://mirrors.huaweicloud.com/nodejs"
@@ -67,9 +55,7 @@
       },
       "doc": "https://nodejs.org/dist/",
       "status": "ok",
-      "verified_at": "2026-09-24",
-      "note": "nvm 默认就用这个地址，不配置也能用；这一条是给改过镜像、想改回来的人"
+      "verified_at": "2026-09-24"
     }
-  ],
-  "note": "nvm 从这个地址取 index.tab 与 vX.Y.Z/ 目录，即 https://nodejs.org/dist 的镜像。该变量只管 Node 二进制的下载，与 npm 的装包源是两回事（另一个工具）。"
+  ]
 }
