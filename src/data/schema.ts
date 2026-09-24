@@ -46,6 +46,17 @@ export const RESERVED_IDS = ['index'] as const;
 const NOT_EMPTY = '不能为空';
 const VAR_NAME_MSG = '变量名只能用小写字母、数字、下划线，且以字母开头（如 url、deb、sec）';
 
+/**
+ * 真日期校验。只看 /^\d{4}-\d{2}-\d{2}$/ 的话，`2026-13-45`、`2026-02-31` 都能过——
+ * 而 verified_at 是本站唯一的可信度凭证，写错一个数字没人会去核对。
+ * 用 Date 往回过一遍：越界的月/日会被 Date 自动进位，回读就对不上了。
+ */
+function isRealDate(s: string): boolean {
+  const [y, m, d] = s.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+
 const varName = z.string().regex(VAR_NAME, VAR_NAME_MSG);
 const varValue = z.string().min(1, '变量值不能为空');
 /**
@@ -117,7 +128,8 @@ export const mirrorEntry = z.object({
   /** 最后人工核实日期，YYYY-MM-DD。必须填，这是本项目的可信度来源 */
   verified_at: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'verified_at 必须是 YYYY-MM-DD 格式'),
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'verified_at 必须是 YYYY-MM-DD 格式')
+    .refine(isRealDate, 'verified_at 必须是真实存在的日期（如 2026-09-24）'),
   /**
    * 该源不适用的变体 key。只允许「少一块」，不允许改写正文——
    * 改写会让模板不再是唯一事实来源，也就失去了「同一变体在各源只差变量」
@@ -200,6 +212,17 @@ export const mirrorDoc = z
         code: 'custom',
         path: ['endpoint_var'],
         message: 'endpoint_var 不能是 host——host 是由它推导出来的',
+      });
+    }
+
+    // path 只能指向本板块之外的地址。这个板块的页面由 [id].astro 按 id 生成，
+    // 与 path 无关；而「算不算本板块」却按 path 前缀判——两者错位时数据里会留下
+    // 一个说得出口、没人使用的地址（页面仍在 /mirrors/<id>/）
+    if (doc.path?.startsWith('/mirrors/')) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['path'],
+        message: `path 不能以 /mirrors/ 开头：这个板块的页面地址由 id 决定（/mirrors/<id>/），写了不会生效`,
       });
     }
 

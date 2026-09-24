@@ -153,6 +153,7 @@ export type IssueKind =
   | 'unknown-ref'
   | 'cycle'
   | 'endpoint'
+  | 'unused-var'
   | 'all-skipped';
 
 export interface ResolveIssue {
@@ -164,6 +165,12 @@ export interface ResolveIssue {
   versionLabel: string;
   /** 该工具一共有多少源——用于判断「所有源都缺这个变量」这类模板级问题 */
   mirrorTotal: number;
+  /**
+   * 该变体一共有多少源会走到它（即没写进 skip_variants 的源数）。
+   * 判断「是不是模板问题」要用它而不是 mirrorTotal：某源跳过该变体时不会报这个错，
+   * 拿全量源数去比就永远差一个，模板问题会被误报成数据漏填。缺省等于 mirrorTotal。
+   */
+  variantMirrorTotal?: number;
   variantKey?: string;
   variantLabel?: string;
   kind: IssueKind;
@@ -184,6 +191,8 @@ interface IssueCtx {
 
 interface Scope {
   values: Map<string, string>;
+  /** 合并后的变量表（工具级 < 版本级 < 源级），键是「声明了的」而不是「用到的」 */
+  declared: Map<string, string>;
   endpoint: string;
   /**
    * 变量求值入口。模板替换必须用它，不能用 values.get——
@@ -275,7 +284,7 @@ function buildScope(
   };
 
   const endpoint = tool.endpoint_var ? (lookup(tool.endpoint_var) ?? '') : '';
-  return { values, endpoint, lookup };
+  return { values, declared: raw, endpoint, lookup };
 }
 
 export interface ResolvedMirrorResult {
@@ -306,7 +315,7 @@ export function resolveVariants(
   };
   const ctx: IssueCtx = { push: (i) => issues.push({ ...base, ...i }) };
 
-  const { values, endpoint, lookup } = buildScope(tool, version.vars ?? {}, mirror, ctx);
+  const { values, declared, endpoint, lookup } = buildScope(tool, version.vars ?? {}, mirror, ctx);
   const skip = new Set(mirror.skip_variants ?? []);
   const variants: ResolvedVariant[] = [];
 
@@ -345,6 +354,24 @@ export function resolveVariants(
     ctx.push({ kind: 'all-skipped', detail: 'skip_variants 把这个工具的所有变体都跳过了' });
   }
 
+  // 声明了、却没有任何模板引用的变量：改模板时改漏的键（拼错、改名、废弃）就藏在这里，
+  // 不报的话它会一直躺在数据里谁也看不见。参考集合必须取**全部**变体（含被 skip 的），
+  // 否则「只被某个源跳过的变体用到」会被误报成没人用。
+  // lookup 恒返回 undefined，于是 render 收齐的 missing 正好就是模板引用过的名字全集。
+  const referenced = new Set<string>();
+  for (const v of tool.variants) {
+    for (const m of render(v.code, () => undefined).missing) referenced.add(m.name);
+  }
+  for (const name of declared.keys()) {
+    // endpoint_var 由框架消费（展示地址与 {host} 都从它来），模板不引用也算有用
+    if (referenced.has(name) || name === tool.endpoint_var) continue;
+    ctx.push({
+      kind: 'unused-var',
+      detail: `变量「${name}」没有被任何命令模板引用`,
+      hint: '拼错或已废弃的键请删掉；确实要用就写成占位符 {小写名}',
+    });
+  }
+
   return { endpoint, vars: Object.fromEntries(values), variants, issues };
 }
 
@@ -363,10 +390,26 @@ export function resolveDoc(
   const issues: ResolveIssue[] = [];
   const list = input.versions?.length ? input.versions : [NO_VERSION];
 
+  // 每个变体有多少源会走到它（写了 skip_variants 的源到不了）。报错时判断
+  // 「是不是模板问题」要用这个数，理由见 ResolveIssue.variantMirrorTotal
+  const reporterCount = new Map<string, number>();
+  for (const v of input.variants) {
+    reporterCount.set(
+      v.key,
+      input.mirrors.filter((m) => !(m.skip_variants ?? []).includes(v.key)).length,
+    );
+  }
+
   const mirrors: MirrorEntry[] = input.mirrors.map((m) => {
     const perVersion: VersionedVariants[] = list.map((v) => {
       const r = resolveVariants(input, v, m, file);
-      issues.push(...r.issues);
+      issues.push(
+        ...r.issues.map((i) => {
+          if (i.variantKey === undefined) return i;
+          const total = reporterCount.get(i.variantKey);
+          return total === undefined ? i : { ...i, variantMirrorTotal: total };
+        }),
+      );
       return { versionKey: v.key, endpoint: r.endpoint, vars: r.vars, variants: r.variants };
     });
     const { vars: _vars, skip_variants: _skip, ...rest } = m;
@@ -432,8 +475,9 @@ export function formatResolveIssues(issues: ResolveIssue[]): string[] {
           : `      涉及 ${names.length} 个源：${shown.join('、')}${names.length > shown.length ? ' 等' : ''}`,
       );
 
-      // 命中全部源 = 模板问题；只命中个别源 = 数据问题。两者的修法完全不同
-      if (f.kind === 'missing-var' && g.length >= f.mirrorTotal) {
+      // 命中全部源 = 模板问题；只命中个别源 = 数据问题。两者的修法完全不同。
+      // 比的是「会走到这个变体的源数」而不是全部源数：跳过该变体的源本来就不会报这个错
+      if (f.kind === 'missing-var' && g.length >= (f.variantMirrorTotal ?? f.mirrorTotal)) {
         out.push(
           f.versionKey
             ? `      提示：版本「${f.versionLabel}」下的每个源都缺这个变量，多半是模板里的占位符写错了，` +
