@@ -208,9 +208,10 @@ npm run check    # astro check，类型检查（deploy.yml 里排在 build 之�
   `/etc/apt/sources.list.d/debian.sources`，主归档套件是 `<suite>` / `<suite>-updates` /
   `<suite>-backports`，安全更新走独立 URI 加 `<suite>-security` 套件。
   两个版本的 `Components:` 行一样，都是 `main contrib non-free non-free-firmware`。
-- **收录的 7 个源在明文 http 下、两个版本都有数据**（2026-09-23 实测）：bookworm 的三个
-  主归档套件与 `bookworm-security`、`trixie` 与 `trixie-security` 全部 200；
-  Ubuntu 侧 `resolute` 与 `resolute-security` 同样。核实方法是取 Release 文件
+- **收录的 7 个源在明文 http 下、各自的两个版本都有数据**（Debian 2026-09-23、
+  Ubuntu 2026-09-24 实测）：bookworm 的三个主归档套件与 `bookworm-security`、
+  `trixie` 与 `trixie-security` 全部 200；Ubuntu 侧 `noble` 与 `resolute` 各四个套件
+  （含 `-updates` / `-backports` / `-security`）同样全 200 且零跳转。核实方法是取 Release 文件
   `curl -o /dev/null -w '%{http_code}' <源>/dists/<套件>/Release`，安全更新换成
   `-security` 那个 URI 再测一次（这是最容易漏的一步）。**要测的是归档路径，不是首页**：
   这些站的网页在明文下会 301 跳 https，但 apt 真正取的 `dists/` 路径是明文直出的，
@@ -224,18 +225,22 @@ npm run check    # astro check，类型检查（deploy.yml 里排在 build 之�
 - 国外源曾收录过（xtom 全球/香港/德国、RIKEN、KAIST、滑铁卢、OVH），2026-09-23 按收录范围
   整批移除，不要再加回来。**核实不了就不写**：当初 NUS、Cornell 从本机连不通，
   就没有先填上再说。
-- Ubuntu 当前 LTS 为 **26.04 = `resolute`**（Resolute Raccoon，2026-04-23 发布）。
-  其他代号：`noble` 24.04、`jammy` 22.04、`questing` 25.10、`stonking` 26.10（开发中）。
+- Ubuntu 页面收录的两个版本：**26.04 LTS = `resolute`**（Resolute Raccoon，2026-04-23 发布）、
+  **24.04 LTS = `noble`**。其他代号：`jammy` 22.04、`questing` 25.10、`stonking` 26.10（开发中）。
   **不要凭记忆写代号**，用镜像站 `/ubuntu/dists/` 的目录列表核对。
+  版本的 key 是发行号（`2604`），命令里的套件名是代号（`resolute`），两者由
+  `versions[].vars.suite` 绑定——加一个版本就是加一组「发行号 + 代号」，而**每个源都要
+  重新核实**这个代号在它上面有数据（发布早期各镜像站同步进度不一）。
 - **Ubuntu 与 Debian 在结构上有个必须注意的差别**：Debian 的安全更新走独立路径
-  `/debian-security`，而 Ubuntu 的 `resolute-security` 与 `resolute` **同在主归档
-  `/ubuntu/` 下**。所以各镜像站的 Ubuntu 配置里两条 URI 是相同的，
-  只有官方源分属 `archive.ubuntu.com` 与 `security.ubuntu.com` 两个域名。
+  `/debian-security`，而 Ubuntu 的 `<suite>-security` 与 `<suite>` **同在主归档
+  `/ubuntu/` 下**。所以 Ubuntu 的 `var_defaults` 是 `"sec": "{deb}"`——各镜像站
+  两条 URI 本来就相同，不必逐源填两遍，只有官方源分属 `archive.ubuntu.com` 与
+  `security.ubuntu.com` 两个域名，才在源级覆盖 `sec`。
 - Ubuntu 的组件是四个 `main restricted universe multiverse`，keyring 为
   `ubuntu-archive-keyring.gpg`；Debian 的四个是 `main contrib non-free non-free-firmware`。
-- Ubuntu 套件代号写错会让 apt 直接报「找不到该套件」，比 Debian 更容易出错
-  （Debian 用固定的 trixie）。工具级 note 里已写明用
-  `. /etc/os-release && echo $VERSION_CODENAME` 自查。
+- Ubuntu 的版本下拉选错会让 apt 直接报「找不到该套件」——两个版本同在页面上，
+  选错比过去硬编码一个版本时更容易发生。工具级 note 里已写明用
+  `. /etc/os-release && echo $VERSION_CODENAME` 查自己的代号。
 
 ## 三、部署
 

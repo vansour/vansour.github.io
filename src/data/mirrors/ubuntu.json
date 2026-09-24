@@ -1,14 +1,30 @@
 {
   "id": "ubuntu",
-  "name": "Ubuntu 26.04 LTS (resolute)",
+  "name": "Ubuntu",
   "category": "system",
   "icon": "🟠",
-  "tagline": "apt 源，安全更新同地址",
+  "tagline": "apt 源，安全更新与主归档同址",
   "modified_file": "/etc/apt/sources.list.d/ubuntu.sources",
-  "endpoint_var": "main",
+  "endpoint_var": "deb",
   "var_defaults": {
-    "sec": "{main}"
+    "sec": "{deb}"
   },
+  "versions": [
+    {
+      "key": "2604",
+      "label": "26.04 LTS (resolute)",
+      "vars": {
+        "suite": "resolute"
+      }
+    },
+    {
+      "key": "2404",
+      "label": "24.04 LTS (noble)",
+      "vars": {
+        "suite": "noble"
+      }
+    }
+  ],
   "variants": [
     {
       "key": "clear",
@@ -21,75 +37,75 @@
       "key": "sources",
       "lang": "bash",
       "label": "写入 deb822 源文件",
-      "code": "sudo tee /etc/apt/sources.list.d/ubuntu.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: {main}\nSuites: resolute resolute-updates resolute-backports\nComponents: main restricted universe multiverse\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {main}\nSuites: resolute resolute-updates resolute-backports\nComponents: main restricted universe multiverse\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n\nTypes: deb\nURIs: {sec}\nSuites: resolute-security\nComponents: main restricted universe multiverse\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {sec}\nSuites: resolute-security\nComponents: main restricted universe multiverse\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\nEOF\nsudo apt update"
+      "code": "sudo tee /etc/apt/sources.list.d/ubuntu.sources > /dev/null <<'EOF'\nTypes: deb\nURIs: {deb}\nSuites: {suite} {suite}-updates {suite}-backports\nComponents: main restricted universe multiverse\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {deb}\nSuites: {suite} {suite}-updates {suite}-backports\nComponents: main restricted universe multiverse\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n\nTypes: deb\nURIs: {sec}\nSuites: {suite}-security\nComponents: main restricted universe multiverse\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\n\nTypes: deb-src\nURIs: {sec}\nSuites: {suite}-security\nComponents: main restricted universe multiverse\nSigned-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg\nEOF\nsudo apt update"
     }
   ],
   "mirrors": [
     {
       "station": "清华大学开源软件镜像站",
       "vars": {
-        "main": "http://mirrors.tuna.tsinghua.edu.cn/ubuntu"
+        "deb": "http://mirrors.tuna.tsinghua.edu.cn/ubuntu"
       },
       "doc": "https://mirrors.tuna.tsinghua.edu.cn/help/ubuntu/",
       "status": "ok",
-      "verified_at": "2026-09-23"
+      "verified_at": "2026-09-24"
     },
     {
       "station": "中国科学技术大学开源软件镜像",
       "vars": {
-        "main": "http://mirrors.ustc.edu.cn/ubuntu"
+        "deb": "http://mirrors.ustc.edu.cn/ubuntu"
       },
       "doc": "https://mirrors.ustc.edu.cn/help/ubuntu.html",
       "status": "ok",
-      "verified_at": "2026-09-23"
+      "verified_at": "2026-09-24"
     },
     {
       "station": "阿里巴巴开源镜像站",
       "vars": {
-        "main": "http://mirrors.aliyun.com/ubuntu"
+        "deb": "http://mirrors.aliyun.com/ubuntu"
       },
       "doc": "https://developer.aliyun.com/mirror/ubuntu",
       "status": "ok",
-      "verified_at": "2026-09-23"
+      "verified_at": "2026-09-24"
     },
     {
       "station": "南京大学镜像站",
       "vars": {
-        "main": "http://mirrors.nju.edu.cn/ubuntu"
+        "deb": "http://mirrors.nju.edu.cn/ubuntu"
       },
       "doc": "https://mirrors.nju.edu.cn/help/ubuntu",
       "status": "ok",
-      "verified_at": "2026-09-23"
+      "verified_at": "2026-09-24"
     },
     {
       "station": "华为云镜像站",
       "vars": {
-        "main": "http://mirrors.huaweicloud.com/ubuntu"
+        "deb": "http://mirrors.huaweicloud.com/ubuntu"
       },
       "doc": "https://mirrors.huaweicloud.com/help/ubuntu/",
       "status": "ok",
-      "verified_at": "2026-09-23"
+      "verified_at": "2026-09-24"
     },
     {
       "station": "网易镜像站",
       "vars": {
-        "main": "http://mirrors.163.com/ubuntu"
+        "deb": "http://mirrors.163.com/ubuntu"
       },
       "doc": "https://mirrors.163.com/.help/ubuntu.html",
       "status": "ok",
-      "verified_at": "2026-09-23"
+      "verified_at": "2026-09-24"
     },
     {
       "station": "Ubuntu 官方源",
       "region": "official",
       "vars": {
-        "main": "http://archive.ubuntu.com/ubuntu",
+        "deb": "http://archive.ubuntu.com/ubuntu",
         "sec": "http://security.ubuntu.com/ubuntu"
       },
       "doc": "https://launchpad.net/ubuntu/+archivemirrors",
       "status": "ok",
-      "verified_at": "2026-09-23"
+      "verified_at": "2026-09-24"
     }
   ],
-  "note": "套件代号（resolute）必须与你的发行版一致，写错会让 apt 直接报找不到该套件——用 `. /etc/os-release && echo $VERSION_CODENAME` 查自己的代号。执行前若 /etc/apt/sources.list 里还有条目，需一并注释掉，否则新旧两个入口会同时生效。deb-src 只在需要下载源码包时才要，留着会拖慢 apt update。"
+  "note": "版本下拉必须与你实际运行的发行版一致——套件代号（noble / resolute）写错会让 apt 直接报找不到该套件，用 `. /etc/os-release && echo $VERSION_CODENAME` 查自己的代号。执行前若 /etc/apt/sources.list 里还有条目，需一并注释掉，否则新旧两个入口会同时生效。deb-src 只在需要下载源码包时才要，留着会拖慢 apt update。"
 }
