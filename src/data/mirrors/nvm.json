@@ -1,0 +1,94 @@
+{
+  "id": "nvm",
+  "name": "nvm",
+  "category": "language",
+  "icon": "🟩",
+  "tagline": "Node.js 版本管理器的下载源",
+  "modified_file": "环境变量 NVM_NODEJS_ORG_MIRROR（写进 shell 配置则长期生效）",
+  "endpoint_var": "url",
+  "variants": [
+    {
+      "key": "session",
+      "lang": "bash",
+      "label": "当前 shell 生效",
+      "code": "export NVM_NODEJS_ORG_MIRROR={url}\nnvm install --lts",
+      "note": "只在当前 shell 生效，重开终端就没了；要长期生效用下面那块"
+    },
+    {
+      "key": "shellrc",
+      "lang": "bash",
+      "label": "写进 shell 配置（长期生效）",
+      "code": "echo 'export NVM_NODEJS_ORG_MIRROR={url}' >> ~/.bashrc",
+      "note": "只写配置，对之后打开的终端生效；zsh 用户把 ~/.bashrc 换成 ~/.zshrc。重复执行会追加重复行，值相同、无害"
+    }
+  ],
+  "mirrors": [
+    {
+      "station": "清华大学开源软件镜像站",
+      "vars": {
+        "url": "https://mirrors.tuna.tsinghua.edu.cn/nodejs-release"
+      },
+      "doc": "https://mirrors.tuna.tsinghua.edu.cn/help/nodejs-release/",
+      "status": "degraded",
+      "verified_at": "2026-09-24",
+      "note": "该仓库已停止同步：最新只到 v24.1.0（2025-05），装新版本会取不到，建议换其它源"
+    },
+    {
+      "station": "中国科学技术大学开源软件镜像",
+      "vars": {
+        "url": "https://mirrors.ustc.edu.cn/node"
+      },
+      "doc": "https://mirrors.ustc.edu.cn/help/node.html",
+      "status": "ok",
+      "verified_at": "2026-09-24"
+    },
+    {
+      "station": "阿里巴巴开源镜像站",
+      "vars": {
+        "url": "https://mirrors.aliyun.com/nodejs-release"
+      },
+      "doc": "https://developer.aliyun.com/mirror/nodejs-release",
+      "status": "ok",
+      "verified_at": "2026-09-24"
+    },
+    {
+      "station": "南京大学镜像站",
+      "vars": {
+        "url": "https://mirrors.nju.edu.cn/nodejs-release"
+      },
+      "doc": "https://mirrors.nju.edu.cn/help/node",
+      "status": "degraded",
+      "verified_at": "2026-09-24",
+      "note": "同步滞后：最新只到 v26.8.1，缺 v26.9.0 与 v26.10.0，装最新版会取不到"
+    },
+    {
+      "station": "华为云镜像站",
+      "vars": {
+        "url": "https://mirrors.huaweicloud.com/nodejs"
+      },
+      "status": "ok",
+      "verified_at": "2026-09-24"
+    },
+    {
+      "station": "腾讯云镜像站",
+      "vars": {
+        "url": "https://mirrors.tencent.com/nodejs-release"
+      },
+      "doc": "https://mirrors.cloud.tencent.com/help/nodejs-release.html",
+      "status": "ok",
+      "verified_at": "2026-09-24"
+    },
+    {
+      "station": "Node.js 官方源",
+      "region": "official",
+      "vars": {
+        "url": "https://nodejs.org/dist"
+      },
+      "doc": "https://nodejs.org/dist/",
+      "status": "ok",
+      "verified_at": "2026-09-24",
+      "note": "nvm 默认就用这个地址，不配置也能用；这一条是给改过镜像、想改回来的人"
+    }
+  ],
+  "note": "nvm 从这个地址取 index.tab 与 vX.Y.Z/ 目录，即 https://nodejs.org/dist 的镜像。该变量只管 Node 二进制的下载，与 npm 的装包源是两回事（另一个工具）。"
+}

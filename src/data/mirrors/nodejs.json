@@ -1,0 +1,50 @@
+{
+  "id": "nodejs",
+  "name": "Node.js / npm",
+  "category": "language",
+  "icon": "📦",
+  "tagline": "Node.js 装包源（npm registry）",
+  "modified_file": "npm 用户配置文件（~/.npmrc）",
+  "endpoint_var": "registry",
+  "variants": [
+    {
+      "key": "registry",
+      "lang": "bash",
+      "label": "永久配置",
+      "code": "npm config set registry {registry}",
+      "note": "项目里的 .npmrc 会覆盖这项用户级配置：设完仍走官方源的话，先看项目里的 .npmrc"
+    }
+  ],
+  "mirrors": [
+    {
+      "station": "npmmirror 镜像站",
+      "vars": {
+        "registry": "https://registry.npmmirror.com"
+      },
+      "doc": "https://npmmirror.com/",
+      "status": "ok",
+      "verified_at": "2026-09-24"
+    },
+    {
+      "station": "华为云镜像站",
+      "vars": {
+        "registry": "https://mirrors.huaweicloud.com/repository/npm/"
+      },
+      "doc": "https://mirrors.huaweicloud.com/help/npm/",
+      "status": "ok",
+      "verified_at": "2026-09-24"
+    },
+    {
+      "station": "npm 官方源",
+      "region": "official",
+      "vars": {
+        "registry": "https://registry.npmjs.org"
+      },
+      "doc": "https://docs.npmjs.com/",
+      "status": "ok",
+      "verified_at": "2026-09-24",
+      "note": "npm 的默认源，不配置就走它；这一条是给改过镜像、想改回来的人"
+    }
+  ],
+  "note": "把 registry 改回来用 npm config delete registry。国内可用的 npm registry 镜像很少：清华、中科大、南大的该服务均已下线或只给改写过的元数据（南大 repo.nju.edu.cn/npm 的 tarball 地址是明文 http，按第 8 条不收），故只收 npmmirror 与华为云。"
+}

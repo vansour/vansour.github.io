@@ -200,10 +200,13 @@ npm run check    # astro check，类型检查（deploy.yml 里排在 build 之�
 - 清华 TUNA 的 help 页路径为 `https://mirrors.tuna.tsinghua.edu.cn/help/<slug>/`，
   该站前端是 Angular SPA，直接 curl 首页拿不到镜像列表。
 - **TUNA 已不再提供 npm、goproxy、maven、composer 的镜像**：这四者的 help 页与
-  数据路径均返回 404（2026-09-23 实测）。但 `crates.io-index`、`nodejs-release`
-  数据路径仍在。网上大量清单仍把 TUNA 列为 npm/go/maven 源，是过期的。
+  数据路径均返回 404（2026-09-23 实测）。`crates.io-index`、`nodejs-release` 的
+  数据路径仍在，但后者已停止同步（见文末 Node 那几条）。网上大量清单仍把 TUNA
+  列为 npm/go/maven 源，是过期的。
 - 中科大 USTC 的 help 页为 `https://mirrors.ustc.edu.cn/help/<name>.html`（带 `.html`）。
-- npm 淘宝镜像现为 `https://registry.npmmirror.com`。
+- npm 淘宝镜像现为 `https://registry.npmmirror.com`——站名是「npmmirror 镜像站」；
+  旧域名 `registry.npm.taobao.org` 已于 2022-06-30 停止 DNS 解析（阿里云 NPM 帮助页所载），
+  现在连 TCP 都连不上。
 - Debian 的版本与套件名：**13 = trixie，12 = bookworm**；官方 deb822 源位于
   `/etc/apt/sources.list.d/debian.sources`，主归档套件是 `<suite>` / `<suite>-updates` /
   `<suite>-backports`，安全更新走独立 URI 加 `<suite>-security` 套件。
@@ -241,6 +244,46 @@ npm run check    # astro check，类型检查（deploy.yml 里排在 build 之�
 - Ubuntu 的版本下拉选错会让 apt 直接报「找不到该套件」——两个版本同在页面上，
   选错比过去硬编码一个版本时更容易发生。工具级 note 里已写明用
   `. /etc/os-release && echo $VERSION_CODENAME` 查自己的代号。
+
+#### Node 侧（nvm 与 npm，2026-09-24 核实）
+
+- **两个页面对应两件不同的事**，别混：`/mirrors/nvm/` 配的是 Node 二进制的下载源
+  （`NVM_NODEJS_ORG_MIRROR`，指向 `nodejs.org/dist` 的镜像），`/mirrors/nodejs/` 配的是
+  npm 装包源（`npm config set registry`）。前者不影响装包，后者不影响装 Node。
+- nvm 取的是 `${NVM_NODEJS_ORG_MIRROR}/index.tab`（**不是 index.json**）加 `vX.Y.Z/` 目录。
+  各站 help 页给的地址末尾带 `/`，实测能用（nvm 会请求到 `//index.tab`，六个站均 200），
+  但 nvm 官方默认写法就是不带斜杠的 `https://nodejs.org/dist`，数据里统一去掉了尾斜杠。
+  核实手段是**端到端**：`NVM_NODEJS_ORG_MIRROR=… nvm ls-remote --lts`，六个源退出码均 0，
+  再对每个源抽验它当前 LTS 的 `node-vX.Y.Z-linux-x64.tar.xz` 与 `SHASUMS256.txt` 均 200。
+  （注意 nvm 是 shell 函数，套 `timeout` 会得到 127 的假失败。）
+- **TUNA 的 nodejs-release 已停止同步**：`index.tab` 的 Last-Modified 停在 **2025-05-21**，
+  最新只有 v24.1.0，v24.21.0 与 v26.10.0 都是 404。路径还在所以不是 dead，但网上清单
+  仍把它当现役 Node 源——页面标 `degraded` 并在源级 note 里写明。
+- **南大 nodejs-release 同步滞后**：最新 v26.8.1，缺 v26.9.0 / v26.10.0，同样标 `degraded`。
+  中科大、阿里云、华为云、腾讯云的 index.tab 都是 2026-09-22/23 的，含 v26.10.0。
+- 华为云把 Node 二进制放在 **`/nodejs/`**（没有 nodejs-release 这个路径），npm registry 在
+  `/repository/npm/`。**它的帮助内容在 JS bundle 里**（`MirrorPortal-CDN/.../main.*.js`，
+  搜 `this.guide=`）：npm 那条是 `npm config set registry <baseUrl>/repository/npm/`；
+  另一处旧站写法带 `npm config set strict-ssl false`，按第 4 条不采。bundle 里**没有**
+  nodejs/nvm 的条目，所以 nvm 页的华为条没有 `doc`——不引一个并不讲这件事的帮助页。
+- **npm registry 的国内可用源很少**，这是现实、不是没找：清华、中科大的该服务均 404；
+  南大的 `repo.nju.edu.cn/npm` 能用，但元数据里的 tarball 地址是明文 `http://`，
+  按第 8 条不收；腾讯云的 npm 帮助页（`/help/npm.html`）给的是
+  `http://mirrors.tencent.com/npm/` 加 `strict-ssl false`，按第 4 / 8 条也不收。
+  最终 npm 页只有 npmmirror 与华为云两家（＋官方）。
+- **腾讯云的 node 镜像收在 nvm 页**：同一站点的 `/help/nodejs-release.html` 给的是 https，
+  且明确写了 `NVM_NODEJS_ORG_MIRROR` 的用法，与它 npm 页那套明文写法是两回事。
+  它的正式域名是 `mirrors.tencent.com`（帮助页在 `mirrors.cloud.tencent.com`，
+  两个域名同一份数据）。**若当初 apt 侧移除腾讯云的本意是整站不收，把这条一并删掉。**
+- npm 的核实手段也是端到端：隔离 `HOME` 后 `npm config set registry …` +
+  `npm pack lodash --loglevel=http`，看 tarball 实际从哪个域名取。npmmirror 的 tarball
+  走它自己的 `cdn.npmmirror.com`（其元数据就是这么改写的，属正常设计），
+  华为云的 tarball 由 `mirrors.huaweicloud.com` 自己提供。带不带尾斜杠都能用，
+  npm 会自己规范化。
+- 镜像站帮助页有三种抓不到正文的形态：TUNA 是 Vite SPA 但**正文模板嵌在 HTML 里**
+  （搜 `NVM_NODEJS_ORG_MIRROR`、`data-z-code` 能捞出来，也可 `/help/<slug>/` 直接取）；
+  华为云是 Angular SPA，**内容在 JS bundle 的 `this.guide=` 里**；南大是纯 Vue SPA 外壳，
+  `/help/node.md` 也只是外壳，只能靠端点核实。
 
 ## 三、部署
 
